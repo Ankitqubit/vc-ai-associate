@@ -1,7 +1,3 @@
-Here’s a full PRD-style document you can share directly with your team (Notion / GDocs / Confluence friendly). I’ll write it assuming **zero prior context**.
-
----
-
 # AI Analyst / AI Associate for VC
 
 ## Product Requirements – Concept & Job Map
@@ -176,13 +172,14 @@ MVP should cover:
 * In-app chat/voice with the AI.
 * Basic knowledge ingestion & thesis configuration.
 * Simple feedback (“thumbs up/down”) on outputs.
+* **Optional founder-facing info gathering (beta, guardrailed)** – tightly scoped, script-based email/Q&A and short AI-led interviews for early design partners only.
 
 ### 5.2 V2 – Deepen workflows
 
 V2 focuses on:
 
 * Email & Slack interfaces.
-* Founder-facing AI for info gathering (email + short calls).
+* Scaling and generalizing founder-facing AI for info gathering (email + short calls) beyond early beta.
 * Richer research, risk register, IC packs.
 * Calendar linking, follow-up drafting.
 * Personalized behavior per partner.
@@ -393,25 +390,27 @@ Below is the **job map**: everything the AI Analyst is responsible for, grouped 
 
 ### Stage 6 – Founder-facing AI Agent
 
-**Goal:** Offload early-stage information gathering to an AI agent, while keeping humans for relationship & judgment.
+**Goal:** Offload early-stage information gathering to an AI agent, while keeping humans for relationship & judgment and tightly managing reputational risk.
 
-20. **AI info-gathering call** – **V2**
+20. **AI info-gathering call** – **MVP (limited beta)**
 
-* Inputs: deal record, info gaps, founder consent.
+* Inputs: deal record, predefined info gaps, founder consent.
 * Output: AI-run short interview; transcript; structured answers; updated metrics; unresolved questions.
 * Behavior:
 
-  * Introduce itself clearly as AI.
-  * Ask structured questions to fill missing fields (metrics, customer breakdown, GTM, etc.).
+  * Introduce itself clearly as AI and explain scope.
+  * Ask structured questions from pre-approved scripts to fill missing fields (metrics, customer breakdown, GTM, etc.).
+  * Respect explicit consent and pause/stop on any hesitation or opt-out from the founder.
 
-21. **AI email Q&A with founders** – **V2**
+21. **AI email Q&A with founders** – **MVP (limited beta)**
 
-* Inputs: info gaps + founder email.
+* Inputs: predefined info gaps + founder email.
 * Output: email thread where AI asks specific questions; extracted answers into the deal record.
 * Behavior:
 
-  * Ask targeted questions.
+  * Ask targeted, pre-approved questions.
   * Parse replies and update fields.
+  * Avoid sensitive topics (terms, valuation, layoffs, legal matters); flag anything borderline for human review.
 
 22. **Routing & escalation to humans** – **V2**
 
@@ -542,7 +541,80 @@ These are important but **not required** for the first product to feel like a tr
 
 ---
 
-## 7. Non-Goals (for MVP)
+## 7. System of Record & Integrations (Philosophy)
+
+**System of record**
+
+* Our app is the **canonical source of truth** for deals, notes, memos, and AI-generated artifacts.
+* External CRMs (e.g., Affinity, HubSpot, Salesforce) are treated as **connected systems**, not the primary source.
+
+**Integrations stance (Phase I)**
+
+* Start with a **small, opinionated integration set** driven by design partners (e.g., Google Workspace / Microsoft 365, 1 CRM, 1 call platform).
+* Add additional integrations based on **clear demand and repeatability**, not one-off requests.
+* Prefer **API-based bi-directional sync** where feasible; when not, fall back to exports/imports or light-weight automations.
+
+**Bi-directional sync principles**
+
+* Our app owns the **deal model**; external CRMs mirror key fields (stage, owner, core notes, tasks).
+* On conflicts, provide **clear resolution rules** (e.g., “app wins for stage and notes; CRM wins for contact data”) and surface discrepancies to users.
+* Integrations are implemented on a **case-by-case basis** for early funds, then templatized once patterns stabilize.
+
+---
+
+## 8. Success Metrics (First Pass)
+
+These are directional metrics to validate that the AI Analyst is actually behaving like a productive junior team member.
+
+**Usage & coverage**
+
+* % of inbound deals that are **auto-structured** into a deal record.
+* % of partner/associate calls that have an **AI-generated summary** attached within X hours.
+
+**Efficiency**
+
+* Average analyst time per **new deal from intake → first memo draft**, baseline vs with AI.
+* Time from **first touch → IC memo draft** for deals that progress.
+
+**Quality & satisfaction**
+
+* Partner/associate rating of AI artifacts (summaries, memos, call prep) on a 1–5 scale.
+* % of AI-generated outputs that are **accepted with minor edits vs heavily rewritten**.
+
+**Business health**
+
+* Number of **active funds** and weekly active users per fund.
+* Retention and expansion across design partners (e.g., more users, more workflows adopted).
+
+---
+
+## 9. Trust, Privacy & Permissions (Principles)
+
+This product handles highly sensitive founder and fund information; trust is a core product requirement, not just a technical concern.
+
+**Data boundaries**
+
+* Each fund’s data is **logically isolated**; no cross-fund training or sharing without explicit, contract-level consent.
+* Founder data is used **solely** to serve the fund(s) involved in the relationship and improve that fund’s experience within agreed bounds.
+
+**Roles & permissions**
+
+* Support basic roles from day one: **Partners, Associates/Analysts, Ops/IR, Read-only**.
+* Allow funds to configure **who can see which deals**, which memos, and which founder conversations (e.g., sensitive or stealth deals).
+
+**Auditability**
+
+* Every AI action (summary, memo, edit, decision suggestion) is **attributable**: who triggered it, when, and on what inputs.
+* Provide an easy way to **inspect underlying sources** (transcripts, decks, docs) behind summaries and memos.
+
+**Founder-facing transparency & consent**
+
+* The AI clearly introduces itself as an AI assistant and explains its scope.
+* Founders can **opt out** of AI-led calls or email flows at any time, with a clear fallback to human communication.
+
+---
+
+## 10. Non-Goals (for MVP)
 
 To avoid scope creep, MVP will **not**:
 
@@ -553,7 +625,7 @@ To avoid scope creep, MVP will **not**:
 
 ---
 
-## 8. Summary
+## 11. Summary
 
 We are building:
 
