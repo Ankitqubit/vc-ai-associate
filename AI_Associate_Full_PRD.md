@@ -534,69 +534,325 @@ When the AI doesn't have enough information:
 
 ## 8. UX & Interaction Model
 
-### 8.1 Primary surfaces (Phase I)
+This product is **AI-native**, not traditional software with AI features bolted on. The interface should feel like working with a teammate, not operating a tool.
 
-- **Web app** as the main UI:
-  - Deal list and Deal Workspace.
-  - Call/transcript view.
-  - Memo view and editor.
-  - Ask-the-Analyst panel.
-- **In-app chat/voice** for conversational interactions.
+### 8.1 Design Philosophy: The AI-Led Workspace
 
-Future surfaces (email/Slack/WhatsApp) are out of scope for this PRD except where they feed intake and founder-facing beta flows.
+We are building an **"AI-led workspace"**—a hybrid model where:
 
-### 8.2 Key screens / views
+- **The AI is the primary navigation mechanism.** Users talk to the AI, and it materializes the right workspace, data, or artifact.
+- **Structured workspaces appear contextually.** When you need to see a deal, memo, or pipeline, the AI pulls it up. You're not clicking through menus.
+- **Workspaces are rich and editable.** Once the AI shows you something, you're in a familiar, powerful interface (like Notion or Linear) where you can edit, comment, and navigate.
+- **The AI remains present everywhere.** From any screen, you can talk to the AI. It knows where you are and what you're looking at.
 
-1. **Deal List**
-   - Search, filters, basic metrics (stage, owner, last activity, fit score).
-2. **Deal Workspace**
-   - Overview: company info, fit score, current stage.
-   - Timeline: calls, emails, notes, tasks.
-   - Memos: drafts and published versions.
-   - AI actions: generate memo, summarize, propose next steps.
-3. **Call View**
-   - Transcript (if available).
-   - AI summary with sections.
-   - Quick edit/correction controls.
-4. **Memo View**
-   - Template-structured content.
-   - Inline attribution of AI vs human text (e.g., subtle visual cues).
-5. **Ask-the-Analyst Panel**
-   - Chat-style interaction.
-   - Shortcut buttons for common queries.
+This is not a chatbot with a dashboard behind it. It's not a dashboard with a chat widget. It's a new paradigm where conversation and structured interfaces are seamlessly integrated.
 
-### 8.3 Interaction patterns
+### 8.2 Core Interaction Paradigm
 
-- **Explicit user control** over write actions:
-  - AI suggests; user confirms before committing changes to critical fields (e.g., stage).
-- **Clear AI attribution**:
-  - Users can always see which content was generated/edited by AI.
-- **Easy correction flows**:
-  - Inline edits that automatically update structured data and logs.
-- **Traceability**:
-  - From summary/memo back to underlying sources (deck, transcript, note).
+#### 8.2.1 Conversational Home
 
-### 8.4 Collaboration Features
+When users open the app, they land in a **conversational state**:
 
-Fund workflows involve heavy collaboration. The platform must support team communication on deals and artifacts:
+- The AI greets them with context: "Good morning. 3 deals updated overnight. ACME sent their data room—want me to summarize?"
+- Users can respond naturally: "Yes, show me ACME" or "What's on my plate today?"
+- The AI responds with information, summaries, or by pulling up relevant workspaces.
 
-**Inline comments:**
-- Comment on any artifact: memos, summaries, deal records, call notes.
-- Comments are threaded for focused discussions.
-- Clear visual distinction between AI-generated content and human comments.
+This is the **default state**—not a dashboard of charts, but a conversation with a teammate who knows everything.
 
-**@mentions:**
-- Tag team members in comments to notify them: "@sarah what do you think about the team?"
-- Mentions trigger notifications based on user preferences.
+#### 8.2.2 Contextual Workspace Materialization
 
-**Resolution tracking:**
-- Comments can be marked as: Open, Addressed, Dismissed.
-- Tracks who resolved and when.
-- Useful for IC prep: "All comments addressed before IC meeting."
+Based on the conversation, the AI surfaces structured workspaces:
 
-**Activity feed:**
-- Each deal has a chronological feed of all activity: AI actions, human edits, comments, stage changes.
-- Filterable by type (AI activity, human activity, comments only).
+- "Show me the ACME deal" → Deal workspace slides into view
+- "What's my pipeline?" → Filtered deal list appears
+- "Draft a memo for this" → Memo editor opens with AI-generated first draft
+
+Users can also navigate directly to workspaces via:
+- **Command bar** (`Cmd+K` / `Ctrl+K`): Type natural language or structured commands
+- **Quick links**: Recent deals, pinned items, notifications
+
+#### 8.2.3 AI Presence Layer
+
+The AI is always accessible, regardless of which workspace you're in:
+
+- **Side panel**: Persistent chat/voice panel that can be expanded or collapsed
+- **Inline actions**: AI action buttons on relevant content (e.g., "Summarize this call," "Generate memo")
+- **Command bar**: Natural language commands from anywhere
+- **Voice activation**: "Hey [AI Name]" or tap-to-talk
+
+### 8.3 Voice & Conversation
+
+Voice is a first-class interaction mode—like talking to a real teammate.
+
+#### 8.3.1 Voice Input
+
+- **Tap-to-talk**: Press a button to speak, release to send
+- **Continuous conversation**: For hands-free use, enable continuous listening mode
+- **Works everywhere**: Voice input available on any screen, mobile and desktop
+
+#### 8.3.2 Voice Output
+
+Users can toggle between:
+
+- **Text responses**: AI responds with text (default for most contexts)
+- **Voice responses**: AI speaks responses aloud (useful for mobile, hands-free, or accessibility)
+- **Automatic mode**: Voice in → Voice out; Text in → Text out
+
+Voice output should feel natural—conversational pace, appropriate pauses, not robotic.
+
+#### 8.3.3 Conversation Memory
+
+The AI remembers conversation context:
+
+- "What about their competitors?" works after discussing a deal—no need to re-specify which deal
+- "Go back to what you showed me earlier" works within a session
+- Cross-session context for ongoing work ("Continue where we left off on the ACME memo")
+
+### 8.4 AI Visibility & Transparency
+
+Users should always know what the AI is doing, what it generated, and where information came from.
+
+#### 8.4.1 AI Work Visibility
+
+When the AI is working, show progress:
+
+- "Parsing deck... Extracting key metrics... Comparing to thesis..."
+- Progress indicators with meaningful stages, not just spinners
+- Ability to see intermediate results as they're generated
+
+This builds trust and makes the AI feel like a real worker, not a black box.
+
+#### 8.4.2 Content Attribution
+
+Clear visual distinction between AI-generated and human content:
+
+- **AI content**: Subtle visual indicator (e.g., light gray background, small AI icon, or different text color)
+- **Human edits**: Marked as human-authored once edited
+- **Citations**: AI content includes clickable links to sources (specific deck slides, transcript timestamps, thesis documents)
+
+Example: In a memo, AI-generated sections show a subtle "✦ AI" badge. Each claim has a citation link. Once a human edits a section, the badge changes to show human authorship.
+
+#### 8.4.3 Confidence & Uncertainty
+
+When AI isn't certain, it shows:
+
+- **Confidence indicators**: "High confidence" vs "Based on limited data"
+- **Missing information callouts**: "I couldn't find revenue data in the deck—should I ask the founder?"
+- **Alternative interpretations**: "The deck says $500K MRR, but the founder mentioned $400K on the call. Which should I use?"
+
+### 8.5 Platform Experiences
+
+#### 8.5.1 Desktop Web App (Primary)
+
+The full-featured experience for deep work:
+
+- **Multi-panel layout**: Conversation + workspace side-by-side
+- **Keyboard-first navigation**: Command bar, shortcuts for power users
+- **Rich editing**: Full memo editor, detailed deal views, bulk operations
+- **Large-screen optimized**: Take advantage of screen real estate
+
+#### 8.5.2 Mobile App (First-Class Citizen)
+
+Mobile is not a stripped-down afterthought—it's optimized for on-the-go workflows:
+
+**Conversation-first design:**
+- Home screen is the AI conversation
+- Voice interaction is prominent and natural
+- Workspaces accessible but secondary
+
+**Optimized actions for mobile:**
+- Quick deal lookups ("What's the status on ACME?")
+- Approvals and confirmations ("Yes, send that email")
+- Voice queries while walking/driving
+- Notification responses
+- Quick note capture
+
+**Not optimized for mobile (use desktop):**
+- Long-form memo editing
+- Complex pipeline management
+- Detailed configuration
+
+**Design considerations:**
+- Large touch targets
+- Swipe gestures for common actions
+- Works well one-handed
+- Offline support for viewing recent data
+
+#### 8.5.3 Appearance Settings
+
+- **Light mode** (default): Clean, professional appearance
+- **Dark mode**: For users who prefer it
+- **System preference**: Automatically match device settings
+
+### 8.6 AI Personality & Customization
+
+The AI should feel like a real teammate, with personality that can be configured.
+
+#### 8.6.1 Personality Options
+
+Funds can choose the AI's communication style:
+
+- **Warm & approachable**: Friendly, uses casual language, feels like a helpful colleague
+  - "Hey! I just finished analyzing the ACME deck. Looks interesting—they've got solid traction. Want me to walk you through it?"
+
+- **Sharp & efficient**: Direct, concise, no fluff—like a high-performing analyst
+  - "ACME deck analyzed. Fit score: 78. Key highlights: $500K MRR, 15% MoM growth, B2B SaaS. Ready for call prep?"
+
+- **Balanced professional**: Middle ground—professional but not cold
+  - "I've completed the analysis of the ACME deck. The fit score is 78/100. Shall I prepare a call prep document?"
+
+#### 8.6.2 Customization Scope
+
+- **Fund-level default**: Set the default personality for the whole fund
+- **User-level override**: Individual users can adjust for their preference
+- **Context-aware**: AI may adjust tone based on context (more formal in founder-facing emails)
+
+#### 8.6.3 AI Name & Identity
+
+- The AI has a name (TBD) and consistent identity
+- Introduces itself during onboarding with personality
+- Maintains consistent voice across all interactions
+
+### 8.7 Key Screens & Views
+
+While the AI-led paradigm is primary, structured workspaces are essential for complex tasks.
+
+#### 8.7.1 Conversation Home
+
+- AI greeting with context (new updates, pending items, suggested actions)
+- Recent conversation history
+- Quick action buttons for common tasks
+- Voice input prominently available
+
+#### 8.7.2 Deal Workspace
+
+When the AI surfaces a deal, users see:
+
+- **Header**: Company name, logo, fit score, current stage, owner
+- **Overview tab**: Key metrics, thesis fit rationale, AI summary
+- **Timeline tab**: Chronological activity (calls, emails, notes, AI actions)
+- **Documents tab**: Deck, memos, transcripts, data room files
+- **AI panel**: Contextual to this deal—"Ask me anything about ACME"
+
+#### 8.7.3 Deal List / Pipeline
+
+- Filterable, sortable list of deals
+- Key columns: Company, stage, fit score, owner, last activity
+- Quick actions: Change stage, assign owner, archive
+- AI-powered search: "Show me Series A deals in fintech with fit score > 70"
+
+#### 8.7.4 Memo Editor
+
+- Template-structured content with AI pre-fill
+- Section-by-section editing with inline AI suggestions
+- Clear attribution (AI vs human content)
+- Citation panel showing sources for AI claims
+- Version history with diff view
+
+#### 8.7.5 Call/Transcript View
+
+- Full transcript with speaker labels and timestamps
+- AI summary panel (collapsible)
+- Highlight & annotate functionality
+- Quick correction controls ("This metric is wrong—correct to X")
+- Jump-to-timestamp from any AI citation
+
+#### 8.7.6 Settings & Configuration
+
+- Fund settings: Thesis config, workflow stages, templates, automation rules
+- User settings: Notification preferences, appearance, AI personality
+- Integration settings: Connected apps, sync status
+- Admin settings: User management, permissions, audit logs
+
+### 8.8 Interaction Patterns
+
+#### 8.8.1 Command Bar
+
+`Cmd+K` / `Ctrl+K` opens a universal command bar:
+
+- **Natural language**: "Show me deals from last week" or "Draft a memo for ACME"
+- **Structured commands**: "deal:ACME" or "new:memo"
+- **Recent items**: Quick access to recently viewed deals, memos, etc.
+- **Actions**: "Add deal," "Generate call prep," "Search transcripts for..."
+
+#### 8.8.2 Explicit Confirmation for High-Risk Actions
+
+AI suggests; user confirms for critical actions:
+
+- Changing deal stage
+- Sending external communications
+- Deleting or archiving deals
+- Publishing memos
+
+Low-risk actions (generating drafts, internal notes) can proceed without confirmation.
+
+#### 8.8.3 Inline Corrections
+
+When AI gets something wrong:
+
+- Click on any AI-generated content to correct it
+- "This is wrong—MRR is actually $400K, not $500K"
+- Correction propagates to structured data and is logged
+- AI learns from corrections (feeds into improvement)
+
+#### 8.8.4 Contextual Actions
+
+AI actions appear where they're relevant:
+
+- On a transcript: "Summarize," "Extract metrics," "Add to deal notes"
+- On a deal: "Generate memo," "Prepare for call," "Contact founder"
+- On a memo: "Regenerate section," "Add more detail," "Check facts"
+
+### 8.9 Collaboration Features
+
+Fund workflows involve heavy collaboration. The platform supports team communication on deals and artifacts:
+
+#### 8.9.1 Inline Comments
+
+- Comment on any artifact: memos, summaries, deal records, call notes
+- Comments are threaded for focused discussions
+- Clear visual distinction between AI-generated content and human comments
+- @mentions to notify team members: "@sarah what do you think about the team?"
+
+#### 8.9.2 Resolution Tracking
+
+- Comments can be marked as: Open, Addressed, Dismissed
+- Tracks who resolved and when
+- Useful for IC prep: "All comments addressed before IC meeting"
+
+#### 8.9.3 Activity Feed
+
+- Each deal has a chronological feed of all activity
+- AI actions, human edits, comments, stage changes
+- Filterable by type (AI activity, human activity, comments only)
+- Fund-level feed for overall activity visibility
+
+### 8.10 Notifications & Alerts
+
+#### 8.10.1 Notification Types
+
+- **AI updates**: "I've finished analyzing the ACME deck"
+- **Deal activity**: Stage changes, new documents, comments
+- **Mentions**: "@you" in comments or discussions
+- **Reminders**: Stale deals, pending follow-ups
+- **Founder responses**: Replies to AI outreach
+
+#### 8.10.2 Delivery Preferences
+
+Users configure per-notification-type:
+
+- **In-app**: Always visible in notification center
+- **Push (mobile)**: For urgent or important items
+- **Email digest**: Daily or weekly summary
+- **Real-time vs batched**: Some users want immediate; others prefer consolidated
+
+#### 8.10.3 Smart Prioritization
+
+AI helps prioritize notifications:
+
+- High-fit deals get higher priority
+- Stale deals surface appropriately
+- Learns from user behavior (what they click on, what they ignore)
 
 ---
 
