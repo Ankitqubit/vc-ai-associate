@@ -128,7 +128,7 @@ export function AIInterface({ layout = "floating" }: AIInterfaceProps) {
 
                                 <input
                                     type="text"
-                                    value={isDictating ? "Listening..." : inputValue}
+                                    value={isDictating && !inputValue ? "Listening..." : inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
                                     onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                                     placeholder="Type or dictate your query..."
@@ -335,7 +335,7 @@ export function AIInterface({ layout = "floating" }: AIInterfaceProps) {
                         </Button>
                         <input
                             type="text"
-                            value={isDictating ? "Listening..." : inputValue}
+                            value={isDictating && !inputValue ? "Listening..." : inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                             placeholder="Ask anything..."

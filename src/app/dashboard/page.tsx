@@ -6,10 +6,15 @@ import { Sparkles, ArrowRight, Clock, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { AIInterface } from "@/components/layout/ai-interface";
 
+import { useDeal } from "@/lib/contexts/deal-context";
+
 export default function DashboardPage() {
+    const { getDealById } = useDeal();
+    const deal = getDealById("deal-1"); // Acme Corp
+
     return (
         <div className="min-h-screen bg-slate-50/50 font-sans relative overflow-hidden flex flex-col">
-            {/* Background Pattern */}
+            {/* ... existing background ... */}
             <div className="absolute inset-0 z-0 opacity-[0.03]"
                 style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
             </div>
@@ -22,6 +27,7 @@ export default function DashboardPage() {
 
                 {/* Hero Section */}
                 <div className="flex flex-col items-center text-center mb-16 space-y-6">
+                    {/* ... existing hero content ... */}
                     <div className="relative group cursor-pointer">
                         <div className="absolute inset-0 bg-indigo-500 blur-xl opacity-20 group-hover:opacity-40 transition-opacity duration-500 rounded-full" />
                         <div className="relative h-20 w-20 bg-white rounded-full flex items-center justify-center shadow-sm border border-indigo-50 group-hover:scale-105 transition-transform duration-300">
@@ -54,10 +60,10 @@ export default function DashboardPage() {
                                 </Badge>
                             </div>
                             <h3 className="text-lg font-medium text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors">
-                                Acme Corp Analysis
+                                {deal?.company.name || "Acme Corp"} Analysis
                             </h3>
                             <p className="text-sm text-slate-500 leading-relaxed mb-4">
-                                Strong Series A fit (78/100). Ex-Google team building logistics AI.
+                                Strong {deal?.stage || "Series A"} fit ({deal?.fitScore.score || 78}/100). {deal?.company.description || "Ex-Google team building logistics AI."}
                             </p>
                             <div className="flex items-center text-xs font-medium text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0">
                                 Review Deal <ArrowRight className="ml-1 h-3 w-3" />

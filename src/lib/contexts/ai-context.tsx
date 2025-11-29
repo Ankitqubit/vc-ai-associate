@@ -53,6 +53,7 @@ export function AIProvider({ children }: { children: ReactNode }) {
             const cmd = command.toLowerCase();
 
             if (cmd.includes("acme") && (cmd.includes("show") || cmd.includes("analysis") || cmd.includes("deal"))) {
+                // ... existing logic ...
                 // AI response
                 addMessage({
                     role: "ai",

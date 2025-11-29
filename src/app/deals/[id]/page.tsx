@@ -1,4 +1,6 @@
-import { getDealById } from "@/lib/data/mock-db";
+"use client";
+
+import { useDeal } from "@/lib/contexts/deal-context";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -15,14 +17,15 @@ import { notFound } from "next/navigation";
 import { AIInterface } from "@/components/layout/ai-interface";
 
 interface PageProps {
-    params: Promise<{
+    params: {
         id: string;
-    }>;
+    };
 }
 
-export default async function DealPage({ params }: PageProps) {
-    const resolvedParams = await params;
-    const deal = getDealById(resolvedParams.id);
+export default function DealPage({ params }: PageProps) {
+    const { id } = params;
+    const { getDealById } = useDeal();
+    const deal = getDealById(id);
 
     if (!deal) {
         return notFound();
