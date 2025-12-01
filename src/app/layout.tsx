@@ -31,7 +31,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CopilotKit publicApiKey="ck_pub_08df0cf33c5a161dc675f870fda26bf8">
+        <CopilotKit runtimeUrl="/api/copilotkit" publicApiKey="ck_pub_08df0cf33c5a161dc675f870fda26bf8">
           <DealProvider>
             <AIProvider>
               {children}

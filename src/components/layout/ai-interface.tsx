@@ -3,21 +3,25 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Mic, Paperclip, ArrowUp, Headphones } from "lucide-react";
+import { Mic, Paperclip, ArrowUp, Headphones, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAI } from "@/lib/contexts/ai-context";
 import { useSpeechRecognition } from "@/lib/hooks/use-speech-recognition";
 
 interface AIInterfaceProps {
     layout?: "floating" | "sidebar";
+    initialMinimized?: boolean;
 }
 
-export function AIInterface({ layout = "floating" }: AIInterfaceProps) {
+export function AIInterface({ layout = "floating", initialMinimized = false }: AIInterfaceProps) {
+    // Reverted to Simulated AI Context
     const { messages, isProcessing, executeCommand } = useAI();
+
     const [inputValue, setInputValue] = useState("");
     const [voiceTranscript, setVoiceTranscript] = useState("");
     const [isVoiceMode, setIsVoiceMode] = useState(false);
     const [isAISpeaking, setIsAISpeaking] = useState(false);
+    const [isMinimized, setIsMinimized] = useState(initialMinimized);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     // Dictation mode (voice-to-text)
@@ -259,193 +263,222 @@ export function AIInterface({ layout = "floating" }: AIInterfaceProps) {
 
     // Sidebar layout for detail pages
     return (
-        <aside className="w-[400px] bg-white/90 backdrop-blur-xl border-l border-slate-200 shadow-2xl flex flex-col h-full z-30 relative font-sans">
+        <aside className={cn(
+            "bg-white/90 backdrop-blur-xl border-l border-slate-200 shadow-2xl flex flex-col h-full z-30 relative font-sans transition-all duration-300 ease-in-out",
+            isMinimized ? "w-16" : "w-[400px]"
+        )}>
             {/* Header */}
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md flex-shrink-0">
-                <div className="flex items-center space-x-3">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <Headphones className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                        <h3 className="font-semibold text-slate-900 text-sm">AI Associate</h3>
-                        <div className="flex items-center space-x-1">
-                            <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-medium">Online</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* Messages Area - FIXED SCROLLING */}
-            <div className="flex-1 overflow-hidden flex flex-col min-h-0">
-                <ScrollArea className="flex-1 p-4 bg-slate-50/30">
-                    <div className="space-y-6" ref={scrollRef}>
-                        {messages.map((msg) => (
-                            <div
-                                key={msg.id}
-                                className={cn(
-                                    "flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
-                                    msg.role === "user" ? "justify-end" : "justify-start"
-                                )}
-                            >
-                                <div className={cn("flex max-w-[85%] flex-col", msg.role === "user" ? "items-end" : "items-start")}>
-                                    <div
-                                        className={cn(
-                                            "rounded-2xl px-5 py-3 text-sm shadow-sm leading-relaxed whitespace-pre-wrap",
-                                            msg.role === "user"
-                                                ? "bg-indigo-600 text-white rounded-br-none"
-                                                : "bg-white border border-slate-100 text-slate-700 rounded-bl-none shadow-md"
-                                        )}
-                                    >
-                                        {msg.content}
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 mt-1 px-1">
-                                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-
-                        {isProcessing && !isVoiceMode && (
-                            <div className="flex justify-start w-full animate-in fade-in">
-                                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm flex items-center space-x-1">
-                                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                </ScrollArea>
-            </div>
-
-            {/* Input Area / Voice Mode Area */}
             <div className={cn(
-                "bg-white border-t border-slate-100 flex-shrink-0 transition-all duration-300",
-                isVoiceMode ? "p-8" : "p-4"
+                "border-b border-slate-100 flex items-center bg-white/50 backdrop-blur-md flex-shrink-0 transition-all",
+                isMinimized ? "flex-col py-4 space-y-4 h-full border-b-0" : "p-4 justify-between"
             )}>
-                {!isVoiceMode ? (
-                    // Normal Input Mode
-                    <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-inner">
-                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1 flex-shrink-0">
-                            <Paperclip className="h-5 w-5" />
-                        </Button>
-                        <input
-                            type="text"
-                            value={isDictating && !inputValue ? "Listening..." : inputValue}
-                            onChange={(e) => setInputValue(e.target.value)}
-                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                            placeholder="Ask anything..."
-                            className={cn(
-                                "flex-1 bg-transparent border-none focus:ring-0 text-sm text-slate-900 placeholder:text-slate-400 py-3 px-2",
-                                isDictating && "text-indigo-600 font-medium"
-                            )}
-                            disabled={isDictating || isProcessing}
-                        />
-                        <div className="flex items-center pr-1 space-x-1 flex-shrink-0">
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className={cn(
-                                    "text-slate-400 hover:text-indigo-600 transition-colors",
-                                    isDictating && "text-red-500 bg-red-50 animate-pulse"
-                                )}
-                                onClick={handleDictate}
-                                title="Voice-to-Text"
-                            >
-                                <Mic className="h-5 w-5" />
-                            </Button>
+                <div className={cn("flex items-center", isMinimized ? "flex-col space-y-4" : "space-x-3")}>
+                    <button
+                        onClick={() => setIsMinimized(!isMinimized)}
+                        className="h-8 w-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center shadow-lg shadow-indigo-500/20 hover:scale-105 transition-transform cursor-pointer"
+                        title={isMinimized ? "Expand AI Associate" : "AI Associate"}
+                    >
+                        <Headphones className="h-4 w-4 text-white" />
+                    </button>
 
-                            {!inputValue.trim() ? (
-                                <Button
-                                    size="icon"
-                                    onClick={handleVoiceConversation}
-                                    disabled={isDictating || isProcessing}
-                                    className="h-8 w-8 rounded-xl transition-all shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white"
-                                    title="Voice Conversation"
-                                >
-                                    <Headphones className="h-4 w-4" />
-                                </Button>
-                            ) : (
-                                <Button
-                                    size="icon"
-                                    onClick={handleSubmit}
-                                    disabled={isProcessing || isDictating}
-                                    className="h-8 w-8 rounded-xl transition-all shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white"
-                                    title="Send"
-                                >
-                                    {isProcessing ? (
-                                        <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    ) : (
-                                        <ArrowUp className="h-4 w-4" />
-                                    )}
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-                ) : (
-                    // Inline Voice Mode (Expanded)
-                    <div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-300">
-                        {/* Orb Visualizer */}
-                        <div className="relative flex items-center justify-center">
-                            {(isVoiceListening || isAISpeaking) && (
-                                <>
-                                    <div className="absolute w-32 h-32 rounded-full bg-indigo-500/20 blur-2xl animate-pulse"
-                                        style={{ animationDuration: '2s' }} />
-                                    <div className="absolute w-24 h-24 rounded-full bg-indigo-400/30 blur-xl animate-pulse"
-                                        style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
-                                </>
-                            )}
-
-                            <div className={cn(
-                                "relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500",
-                                isVoiceListening && "bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/50",
-                                isAISpeaking && "bg-gradient-to-tr from-purple-500 to-pink-600 shadow-xl shadow-purple-500/50"
-                            )}>
-                                <div className="w-2.5 h-2.5 rounded-full bg-white" />
-                            </div>
-                        </div>
-
-                        {/* Status Text */}
-                        <div className="text-center">
-                            <p className="text-sm font-medium text-slate-900">
-                                {isVoiceListening && "Listening..."}
-                                {isAISpeaking && "AI is responding"}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-1">
-                                {isVoiceListening && "Speak clearly, I'll process your request"}
-                                {isAISpeaking && "Processing and responding..."}
-                            </p>
-                        </div>
-
-                        {/* Waveform */}
-                        {(isVoiceListening || isAISpeaking) && (
+                    {!isMinimized && (
+                        <div>
+                            <h3 className="font-semibold text-slate-900 text-sm">AI Associate</h3>
                             <div className="flex items-center space-x-1">
-                                {[...Array(5)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={cn(
-                                            "w-0.5 rounded-full transition-all",
-                                            isVoiceListening ? "bg-indigo-400" : "bg-purple-400"
-                                        )}
-                                        style={{
-                                            height: `${Math.random() * 16 + 6}px`,
-                                            animationName: 'pulse',
-                                            animationDuration: `${Math.random() * 0.5 + 0.5}s`,
-                                            animationTimingFunction: 'ease-in-out',
-                                            animationIterationCount: 'infinite',
-                                            animationDelay: `${i * 0.1}s`
-                                        }}
-                                    />
-                                ))}
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-medium">Online</span>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
+                </div>
+
+                {!isMinimized && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 text-slate-400 hover:text-slate-600"
+                        onClick={() => setIsMinimized(true)}
+                    >
+                        <ArrowRight className="h-4 w-4" />
+                    </Button>
                 )}
             </div>
+
+            {/* Content - Only visible when expanded */}
+            {!isMinimized && (
+                <>
+                    {/* Messages Area */}
+                    <div className="flex-1 overflow-hidden flex flex-col min-h-0">
+                        <ScrollArea className="flex-1 p-4 bg-slate-50/30">
+                            <div className="space-y-6" ref={scrollRef}>
+                                {messages.map((msg) => (
+                                    <div
+                                        key={msg.id}
+                                        className={cn(
+                                            "flex w-full animate-in fade-in slide-in-from-bottom-2 duration-300",
+                                            msg.role === "user" ? "justify-end" : "justify-start"
+                                        )}
+                                    >
+                                        <div className={cn("flex max-w-[85%] flex-col", msg.role === "user" ? "items-end" : "items-start")}>
+                                            <div
+                                                className={cn(
+                                                    "rounded-2xl px-5 py-3 text-sm shadow-sm leading-relaxed whitespace-pre-wrap",
+                                                    msg.role === "user"
+                                                        ? "bg-indigo-600 text-white rounded-br-none"
+                                                        : "bg-white border border-slate-100 text-slate-700 rounded-bl-none shadow-md"
+                                                )}
+                                            >
+                                                {msg.content}
+                                            </div>
+                                            <span className="text-[10px] text-slate-400 mt-1 px-1">
+                                                {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+
+                                {isProcessing && !isVoiceMode && (
+                                    <div className="flex justify-start w-full animate-in fade-in">
+                                        <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm flex items-center space-x-1">
+                                            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                            <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </ScrollArea>
+                    </div>
+
+                    {/* Input Area */}
+                    <div className={cn(
+                        "bg-white border-t border-slate-100 flex-shrink-0 transition-all duration-300",
+                        isVoiceMode ? "p-8" : "p-4"
+                    )}>
+                        {!isVoiceMode ? (
+                            // Normal Input Mode
+                            <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-inner">
+                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1 flex-shrink-0">
+                                    <Paperclip className="h-5 w-5" />
+                                </Button>
+                                <input
+                                    type="text"
+                                    value={isDictating && !inputValue ? "Listening..." : inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                                    placeholder="Ask anything..."
+                                    className={cn(
+                                        "flex-1 bg-transparent border-none focus:ring-0 text-slate-900 placeholder:text-slate-400 py-3 px-2",
+                                        isDictating && "text-indigo-600 font-medium"
+                                    )}
+                                    disabled={isDictating || isProcessing}
+                                />
+                                <div className="flex items-center pr-1 space-x-1 flex-shrink-0">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className={cn(
+                                            "text-slate-400 hover:text-indigo-600 transition-colors",
+                                            isDictating && "text-red-500 bg-red-50 animate-pulse"
+                                        )}
+                                        onClick={handleDictate}
+                                        title="Voice-to-Text"
+                                    >
+                                        <Mic className="h-5 w-5" />
+                                    </Button>
+
+                                    {!inputValue.trim() ? (
+                                        <Button
+                                            size="icon"
+                                            onClick={handleVoiceConversation}
+                                            disabled={isDictating || isProcessing}
+                                            className="h-8 w-8 rounded-xl transition-all shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            title="Voice Conversation"
+                                        >
+                                            <Headphones className="h-4 w-4" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            size="icon"
+                                            onClick={handleSubmit}
+                                            disabled={isProcessing || isDictating}
+                                            className="h-8 w-8 rounded-xl transition-all shadow-sm bg-indigo-600 hover:bg-indigo-700 text-white"
+                                            title="Send"
+                                        >
+                                            {isProcessing ? (
+                                                <div className="h-3 w-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            ) : (
+                                                <ArrowUp className="h-4 w-4" />
+                                            )}
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        ) : (
+                            // Inline Voice Mode (Expanded)
+                            <div className="flex flex-col items-center space-y-6 animate-in fade-in zoom-in duration-300">
+                                {/* Orb Visualizer */}
+                                <div className="relative flex items-center justify-center">
+                                    {(isVoiceListening || isAISpeaking) && (
+                                        <>
+                                            <div className="absolute w-32 h-32 rounded-full bg-indigo-500/20 blur-2xl animate-pulse"
+                                                style={{ animationDuration: '2s' }} />
+                                            <div className="absolute w-24 h-24 rounded-full bg-indigo-400/30 blur-xl animate-pulse"
+                                                style={{ animationDuration: '1.5s', animationDelay: '0.3s' }} />
+                                        </>
+                                    )}
+
+                                    <div className={cn(
+                                        "relative w-20 h-20 rounded-full flex items-center justify-center transition-all duration-500",
+                                        isVoiceListening && "bg-gradient-to-tr from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/50",
+                                        isAISpeaking && "bg-gradient-to-tr from-purple-500 to-pink-600 shadow-xl shadow-purple-500/50"
+                                    )}>
+                                        <div className="w-2.5 h-2.5 rounded-full bg-white" />
+                                    </div>
+                                </div>
+
+                                {/* Status Text */}
+                                <div className="text-center">
+                                    <p className="text-sm font-medium text-slate-900">
+                                        {isVoiceListening && "Listening..."}
+                                        {isAISpeaking && "AI is responding"}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        {isVoiceListening && "Speak clearly, I'll process your request"}
+                                        {isAISpeaking && "Processing and responding..."}
+                                    </p>
+                                </div>
+
+                                {/* Waveform */}
+                                {(isVoiceListening || isAISpeaking) && (
+                                    <div className="flex items-center space-x-1">
+                                        {[...Array(5)].map((_, i) => (
+                                            <div
+                                                key={i}
+                                                className={cn(
+                                                    "w-0.5 rounded-full transition-all",
+                                                    isVoiceListening ? "bg-indigo-400" : "bg-purple-400"
+                                                )}
+                                                style={{
+                                                    height: `${Math.random() * 16 + 6}px`,
+                                                    animationName: 'pulse',
+                                                    animationDuration: `${Math.random() * 0.5 + 0.5}s`,
+                                                    animationTimingFunction: 'ease-in-out',
+                                                    animationIterationCount: 'infinite',
+                                                    animationDelay: `${i * 0.1}s`
+                                                }}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </>
+            )}
         </aside>
     );
 }

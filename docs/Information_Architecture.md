@@ -11,10 +11,18 @@
 1. [Navigation Model](#1-navigation-model)
 2. [Site Map](#2-site-map)
 3. [Screen Inventory](#3-screen-inventory)
+   - 3.1 Deal Intake Flow
+   - 3.2 Call Workflow
+   - 3.3 Memo Creation Flow
+   - 3.4 Partner Review Flow
+   - 3.5 Founder Interaction Flow
+   - 3.6 IC Process Flow
+   - 3.7 Onboarding Flow
+   - 3.8 Settings & Configuration
 4. [Navigation Patterns](#4-navigation-patterns)
 5. [Component Placement](#5-component-placement)
-6. [State Management](#6-state-management)
-7. [Flow Mapping](#7-flow-mapping)
+6. [Keyboard Shortcuts & Commands](#6-keyboard-shortcuts--commands)
+7. [URL Structure & Deep Linking](#7-url-structure--deep-linking)
 
 ---
 
@@ -22,1408 +30,1085 @@
 
 ### 1.1 Design Philosophy
 
-The AI Analyst uses a **hybrid navigation model** that combines:
-- **Conversation-first**: The default experience centers on AI interaction
-- **Traditional navigation**: Available for direct access when users know where they want to go
-- **AI-driven navigation**: Users can ask the AI to take them anywhere
+This product uses an **AI-led hybrid navigation model**:
 
-This approach supports both the "AI-led workspace" vision and the practical needs of power users who want direct access.
+| Priority | Navigation Method | Use Case |
+|----------|-------------------|----------|
+| **Primary** | Conversational | "Show me Acme" → workspace appears |
+| **Secondary** | Command Bar (Cmd+K) | Power users, quick actions |
+| **Tertiary** | Icon Rail | Direct access to main sections |
 
-### 1.2 Desktop Navigation
+**Key Principle:** The AI is the primary navigation mechanism. Users can accomplish most tasks through conversation. Structured navigation exists for users who prefer direct access or need to browse.
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  [Logo]    [Search]                    [Notifications] [User Menu]  │  ← Header (persistent)
-├─────────┬───────────────────────────────────────────────────────────┤
-│         │                                                           │
-│  Home   │                                                           │
-│         │                                                           │
-│  Deals  │              Main Content Area                            │
-│         │                                                           │
-│  Memos  │                                                           │
-│         │                                                           │
-│  Calls  │                                                           │
-│         │                                            ┌─────────────┤
-│ ─────── │                                            │  AI Panel   │  ← Contextual
-│Settings │                                            │  (when in   │
-│         │                                            │  workspace) │
-└─────────┴────────────────────────────────────────────┴─────────────┘
-     ↑
-  Sidebar
-(collapsible)
-```
-
-**Primary Navigation (Sidebar)**
-| Item | Icon | Description |
-|------|------|-------------|
-| Home | 💬 | Conversation Home - AI chat interface |
-| Deals | 📊 | Pipeline views and deal workspaces |
-| Memos | 📝 | Investment memo list and editor |
-| Calls | 📞 | Call prep, transcripts, summaries |
-| Settings | ⚙️ | Fund and user configuration |
-
-**Sidebar Behavior:**
-- Default: Expanded (showing icons + labels)
-- Collapsible to icons-only via toggle
-- Remembers user preference
-- Hover on collapsed sidebar shows tooltip with label
-
-**Header Elements:**
-| Element | Position | Behavior |
-|---------|----------|----------|
-| Logo | Left | Click → Conversation Home |
-| Search | Center | Click or Cmd+K → Command bar |
-| Notifications | Right | Click → Notification drawer |
-| User Menu | Right | Click → User dropdown |
-
-**AI Panel:**
-- Appears contextually within workspaces (Deal, Memo, Call)
-- Global access via Cmd+/ (opens drawer from right)
-- Can be resized (default 320px width)
-- Can be collapsed within workspace
-
-### 1.3 Mobile Navigation
+### 1.2 Desktop Layout
 
 ```
-┌─────────────────────────────────┐
-│  [Back]    [Title]    [Actions] │  ← Context header
-├─────────────────────────────────┤
-│                                 │
-│                                 │
-│        Main Content             │
-│                                 │
-│                                 │
-│                         [Chat]  │  ← Floating action button
-├─────────────────────────────────┤
-│  🏠    📊    🔔    👤          │  ← Bottom tab bar
-│ Home  Deals Activity Profile    │
-└─────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│  [Logo]     [─────── Command Bar (Cmd+K) ───────]    [🔔] [Avatar ▾] │
+├──────┬───────────────────────────────────────────────────────────────┤
+│      │                                                               │
+│  💬  │                                                               │
+│      │                    Main Content Area                          │
+│ ──── │                                                               │
+│      │              (Conversational Home / Workspace)                │
+│  📊  │                                                               │
+│      │                                                 ┌────────────┐│
+│ ──── │                                                 │            ││
+│      │                                                 │  AI Panel  ││
+│  ⚙️  │                                                 │ (collapse) ││
+│      │                                                 │            ││
+│      │                                                 └────────────┘│
+└──────┴───────────────────────────────────────────────────────────────┘
+   │                        │                                  │
+   │                        │                                  │
+Icon Rail            Main Content                        AI Side Panel
+(48px wide)          (flexible)                          (320px, collapsible)
 ```
 
-**Bottom Tab Bar:**
-| Tab | Icon | Destination |
-|-----|------|-------------|
-| Home | 🏠 | Conversation Home |
-| Deals | 📊 | Pipeline List |
-| Activity | 🔔 | Activity/Notification feed |
-| Profile | 👤 | User settings and preferences |
+**Icon Rail Items:**
+| Icon | Label | Destination |
+|------|-------|-------------|
+| 💬 | Chat | Conversational Home |
+| 📊 | Pipeline | Pipeline List/Kanban View |
+| ⚙️ | Settings | Settings Hub |
 
-**Floating Chat Button:**
-- Appears on all screens (except Conversation Home)
-- Position: Bottom-right, above tab bar
-- Tap → Opens AI chat drawer from bottom
-- Long-press → Voice input
+**Header Components:**
+- **Logo**: Click returns to Conversational Home
+- **Command Bar**: Always visible, click or Cmd+K to focus
+- **Notifications**: Bell icon with unread count badge
+- **User Menu**: Avatar dropdown with profile, preferences, logout
 
-**Stack Navigation:**
-- Screens stack on top of each other
-- Back button in header to return
-- Swipe from left edge to go back (iOS)
-- Native navigation patterns per platform
-
-### 1.4 Navigation Hierarchy
+### 1.3 Mobile Layout
 
 ```
-Level 0: App Shell
-├── Level 1: Primary Sections (Tab bar / Sidebar)
-│   ├── Level 2: Section Views (List, Kanban, etc.)
-│   │   ├── Level 3: Item Workspaces (Deal, Memo, Call)
-│   │   │   └── Level 4: Modals & Drawers
-│   │   └── Level 3: Modals (Creation, Comparison)
-│   └── Level 2: Settings Subsections
-│       └── Level 3: Settings Details & Modals
-└── Overlays: Command Bar, Search, Notifications (any level)
+┌─────────────────────────────┐
+│  [☰]    [Logo]       [🔔]   │  ← Header (56px)
+├─────────────────────────────┤
+│                             │
+│                             │
+│                             │
+│    Conversational           │
+│    Interface                │
+│    (Full Screen)            │
+│                             │
+│                             │
+│                             │
+│                             │
+├─────────────────────────────┤
+│  [🎤]  [  Type a message  ] │  ← Input Bar (64px)
+└─────────────────────────────┘
 ```
+
+**Mobile Navigation:**
+- **Hamburger Menu (☰)**: Opens full-screen drawer with all navigation
+- **Conversation is Home**: Default view is always the AI chat
+- **Voice Prominent**: Microphone button is large and always visible
+- **Swipe Gestures**: Swipe from left edge opens menu
+
+**Hamburger Menu Contents:**
+```
+┌─────────────────────────────┐
+│  [✕]           [User Name]  │
+│                [user@fund]  │
+├─────────────────────────────┤
+│  💬  Home                   │
+│  📊  Pipeline               │
+│  🔔  Notifications          │
+│  ⚙️  Settings               │
+├─────────────────────────────┤
+│  📤  Log Out                │
+└─────────────────────────────┘
+```
+
+### 1.4 Responsive Breakpoints
+
+| Breakpoint | Width | Layout |
+|------------|-------|--------|
+| Mobile | < 768px | Single column, hamburger menu |
+| Tablet | 768px - 1024px | Icon rail + content, AI panel overlays |
+| Desktop | > 1024px | Full layout with persistent AI panel |
+| Large Desktop | > 1440px | Wider content area, larger AI panel |
 
 ---
 
 ## 2. Site Map
 
-### 2.1 Complete Site Map
+### 2.1 Complete Hierarchy
 
 ```
-AI Analyst
+🏠 AI Analyst
 │
-├── 🏠 Conversation Home [HOME]
-│   ├── Morning Briefing State [HOME-001]
-│   ├── Active Conversation State [HOME-002]
-│   ├── Empty/New User State [HOME-003]
-│   └── Voice Input Mode [HOME-004]
+├── 💬 Conversational Home
+│   ├── Morning Briefing
+│   ├── Active Conversation
+│   └── Conversation History
 │
-├── 📊 Deals [DEALS]
-│   ├── Pipeline List View [DEALS-001]
-│   │   ├── Filter Panel (drawer) [DEALS-001a]
-│   │   ├── Sort Options (dropdown) [DEALS-001b]
-│   │   ├── Column Customization (modal) [DEALS-001c]
-│   │   └── Bulk Actions Bar [DEALS-001d]
-│   │
-│   ├── Pipeline Kanban View [DEALS-002]
-│   │   ├── Stage Settings (dropdown) [DEALS-002a]
-│   │   └── Card Quick View (popover) [DEALS-002b]
-│   │
-│   ├── Deal Workspace [DEALS-003]
-│   │   ├── Overview Tab [DEALS-003a]
-│   │   │   ├── Fit Score Detail (expandable) [DEALS-003a-1]
-│   │   │   ├── Metrics Grid [DEALS-003a-2]
-│   │   │   └── AI Summary Section [DEALS-003a-3]
-│   │   ├── Timeline Tab [DEALS-003b]
-│   │   │   ├── Activity Filter (dropdown) [DEALS-003b-1]
-│   │   │   └── Activity Detail (expandable) [DEALS-003b-2]
-│   │   ├── Documents Tab [DEALS-003c]
-│   │   │   ├── Document Viewer (modal) [DEALS-003c-1]
-│   │   │   └── Upload Modal [DEALS-003c-2]
-│   │   ├── AI Panel (embedded) [DEALS-003d]
-│   │   ├── Edit Deal Modal [DEALS-003e]
-│   │   ├── Stage Change Confirmation [DEALS-003f]
-│   │   └── Archive Confirmation [DEALS-003g]
-│   │
-│   ├── Deal Creation Modal [DEALS-004]
-│   │   ├── Manual Entry Form [DEALS-004a]
-│   │   ├── Deck Upload [DEALS-004b]
-│   │   └── Link Import [DEALS-004c]
-│   │
-│   └── Deal Comparison Modal [DEALS-005]
+├── 📊 Pipeline
+│   ├── List View
+│   │   ├── All Deals
+│   │   ├── My Deals
+│   │   └── Saved Filters
+│   ├── Kanban View
+│   └── Search Results
 │
-├── 📝 Memos [MEMOS]
-│   ├── Memo List [MEMOS-001]
-│   │   ├── Filter Options (dropdown) [MEMOS-001a]
-│   │   └── Status Tabs [MEMOS-001b]
-│   │
-│   ├── Memo Editor [MEMOS-002]
-│   │   ├── Section Editor [MEMOS-002a]
-│   │   ├── Citation Panel (drawer) [MEMOS-002b]
-│   │   ├── Version History (drawer) [MEMOS-002c]
-│   │   ├── Regenerate Section Modal [MEMOS-002d]
-│   │   ├── AI Panel (embedded) [MEMOS-002e]
-│   │   ├── Comment Thread (popover) [MEMOS-002f]
-│   │   └── Export Options Modal [MEMOS-002g]
-│   │
-│   └── Memo Preview [MEMOS-003]
-│       └── PDF Export [MEMOS-003a]
+├── 📁 Deal Workspace (per deal)
+│   ├── Overview Tab
+│   │   ├── Key Metrics
+│   │   ├── Thesis Fit
+│   │   └── AI Summary
+│   ├── Timeline Tab
+│   │   ├── Activity Feed
+│   │   └── Filter by Type
+│   ├── Documents Tab
+│   │   ├── Deck
+│   │   ├── Memos
+│   │   ├── Transcripts
+│   │   └── Files
+│   └── AI Panel (contextual)
 │
-├── 📞 Calls [CALLS]
-│   ├── Upcoming Calls List [CALLS-001]
-│   │   └── Calendar View Toggle [CALLS-001a]
-│   │
-│   ├── Call Prep View [CALLS-002]
-│   │   ├── Edit Section Mode [CALLS-002a]
-│   │   ├── Add Question Modal [CALLS-002b]
-│   │   └── Finalize Confirmation [CALLS-002c]
-│   │
-│   ├── Transcript View [CALLS-003]
-│   │   ├── Summary Panel (collapsible) [CALLS-003a]
-│   │   ├── Speaker Filter [CALLS-003b]
-│   │   ├── Search in Transcript [CALLS-003c]
-│   │   ├── Timestamp Navigation [CALLS-003d]
-│   │   └── Correction Mode [CALLS-003e]
-│   │
-│   ├── Call Summary View [CALLS-004]
-│   │   ├── Edit Summary Mode [CALLS-004a]
-│   │   ├── Metrics Verification [CALLS-004b]
-│   │   └── Send to CRM Modal [CALLS-004c]
-│   │
-│   └── Upload Transcript Modal [CALLS-005]
+├── 📝 Memo Editor
+│   ├── Edit Mode
+│   ├── Preview Mode
+│   ├── Version History
+│   └── Citation Panel
 │
-├── ⚙️ Settings [SETTINGS]
-│   ├── Fund Configuration [SETTINGS-001]
-│   │   ├── Thesis Configuration [SETTINGS-001a]
-│   │   │   ├── Stage Preferences [SETTINGS-001a-1]
-│   │   │   ├── Geography Settings [SETTINGS-001a-2]
-│   │   │   ├── Sector Preferences [SETTINGS-001a-3]
-│   │   │   └── Soft Criteria Weighting [SETTINGS-001a-4]
-│   │   ├── Pipeline Stages [SETTINGS-001b]
-│   │   │   ├── Add Stage Modal [SETTINGS-001b-1]
-│   │   │   ├── Edit Stage Modal [SETTINGS-001b-2]
-│   │   │   └── Stage Requirements Modal [SETTINGS-001b-3]
-│   │   ├── Memo Templates [SETTINGS-001c]
-│   │   │   ├── Template Editor [SETTINGS-001c-1]
-│   │   │   └── Preview Template [SETTINGS-001c-2]
-│   │   └── Automation Rules [SETTINGS-001d]
-│   │       ├── Rule Builder Modal [SETTINGS-001d-1]
-│   │       └── Rule Test Modal [SETTINGS-001d-2]
-│   │
-│   ├── User Preferences [SETTINGS-002]
-│   │   ├── Notification Settings [SETTINGS-002a]
-│   │   ├── AI Personality Selection [SETTINGS-002b]
-│   │   ├── Appearance (Theme) [SETTINGS-002c]
-│   │   └── Voice Settings [SETTINGS-002d]
-│   │
-│   ├── Integrations [SETTINGS-003]
-│   │   ├── CRM Connection [SETTINGS-003a]
-│   │   │   ├── OAuth Flow (external) [SETTINGS-003a-1]
-│   │   │   ├── Field Mapping Modal [SETTINGS-003a-2]
-│   │   │   └── Sync Settings [SETTINGS-003a-3]
-│   │   ├── Calendar Connection [SETTINGS-003b]
-│   │   │   └── OAuth Flow (external) [SETTINGS-003b-1]
-│   │   ├── Email Setup [SETTINGS-003c]
-│   │   └── Integration Status Dashboard [SETTINGS-003d]
-│   │
-│   └── Team Management [SETTINGS-004]
-│       ├── User List [SETTINGS-004a]
-│       ├── Invite User Modal [SETTINGS-004b]
-│       ├── Edit User Role Modal [SETTINGS-004c]
-│       ├── Remove User Confirmation [SETTINGS-004d]
-│       └── Audit Log [SETTINGS-004e]
+├── 📞 Call Views
+│   ├── Call Prep
+│   ├── Transcript View
+│   └── Summary View
 │
-├── 🎓 Onboarding [ONBOARD]
-│   ├── Welcome Screen [ONBOARD-001]
-│   ├── Thesis Wizard [ONBOARD-002]
-│   │   ├── Step 1: Stage [ONBOARD-002a]
-│   │   ├── Step 2: Geography [ONBOARD-002b]
-│   │   ├── Step 3: Check Size [ONBOARD-002c]
-│   │   ├── Step 4: Sectors [ONBOARD-002d]
-│   │   └── Step 5: Preferences [ONBOARD-002e]
-│   ├── Workflow Setup [ONBOARD-003]
-│   ├── Template Setup [ONBOARD-004]
-│   ├── Integration Setup [ONBOARD-005]
-│   ├── Import Wizard [ONBOARD-006]
-│   │   ├── Source Selection [ONBOARD-006a]
-│   │   ├── File Upload [ONBOARD-006b]
-│   │   ├── Field Mapping [ONBOARD-006c]
-│   │   ├── Preview & Confirm [ONBOARD-006d]
-│   │   └── Import Progress [ONBOARD-006e]
-│   ├── Knowledge Base Upload [ONBOARD-007]
-│   └── Completion Screen [ONBOARD-008]
+├── 🔔 Notifications
+│   ├── All Notifications
+│   ├── Unread
+│   └── By Type Filter
 │
-└── 🌐 Global Elements [GLOBAL]
-    ├── Command Bar (overlay) [GLOBAL-001]
-    │   ├── Search Results [GLOBAL-001a]
-    │   ├── Recent Items [GLOBAL-001b]
-    │   └── Quick Actions [GLOBAL-001c]
-    ├── Notification Center (drawer) [GLOBAL-002]
-    │   ├── Notification Item [GLOBAL-002a]
-    │   ├── Notification Settings Link [GLOBAL-002b]
-    │   └── Mark All Read [GLOBAL-002c]
-    ├── AI Chat Panel (drawer) [GLOBAL-003]
-    │   ├── Chat Input [GLOBAL-003a]
-    │   ├── Voice Input Mode [GLOBAL-003b]
-    │   ├── Message Thread [GLOBAL-003c]
-    │   └── Action Confirmation [GLOBAL-003d]
-    ├── User Menu (dropdown) [GLOBAL-004]
-    │   ├── Profile Link [GLOBAL-004a]
-    │   ├── Settings Link [GLOBAL-004b]
-    │   ├── Help Link [GLOBAL-004c]
-    │   └── Logout [GLOBAL-004d]
-    ├── Toast Notifications [GLOBAL-005]
-    ├── Error Modal [GLOBAL-006]
-    ├── Confirmation Modal [GLOBAL-007]
-    └── Loading States [GLOBAL-008]
+├── ⚙️ Settings
+│   ├── Fund Settings
+│   │   ├── General
+│   │   ├── Thesis Config
+│   │   ├── Pipeline Stages
+│   │   ├── Memo Templates
+│   │   └── Automation Rules
+│   ├── Integrations
+│   │   ├── CRM
+│   │   ├── Calendar
+│   │   ├── Email
+│   │   └── Note-Taker
+│   ├── Team
+│   │   ├── Members
+│   │   ├── Roles
+│   │   └── Invitations
+│   └── User Preferences
+│       ├── Notifications
+│       ├── AI Personality
+│       └── Appearance
+│
+├── 🎓 Onboarding (overlay)
+│   ├── Welcome
+│   ├── Setup Wizard
+│   └── Feature Tours
+│
+└── 🌐 Founder Portal (separate)
+    ├── Website Embed
+    └── Email/Call Interfaces
 ```
 
-### 2.2 Site Map Statistics
+### 2.2 Primary Navigation Paths
 
-| Category | Screens | Modals/Drawers | States | Total |
-|----------|---------|----------------|--------|-------|
-| Conversation Home | 1 | 0 | 4 | 5 |
-| Deals | 5 | 12 | 3 | 20 |
-| Memos | 3 | 6 | 2 | 11 |
-| Calls | 5 | 6 | 2 | 13 |
-| Settings | 4 | 14 | 0 | 18 |
-| Onboarding | 8 | 5 | 0 | 13 |
-| Global Elements | 0 | 8 | 4 | 12 |
-| **Total** | **26** | **51** | **15** | **92** |
-
-[DIAGRAM: Visual site map showing hierarchy and relationships between screens]
+```
+                    ┌─────────────────┐
+                    │ Conversational  │
+                    │     Home        │
+                    └────────┬────────┘
+                             │
+            ┌────────────────┼────────────────┐
+            │                │                │
+            ▼                ▼                ▼
+     ┌──────────┐     ┌──────────┐     ┌──────────┐
+     │ Pipeline │     │   Deal   │     │ Settings │
+     │   View   │     │Workspace │     │          │
+     └────┬─────┘     └────┬─────┘     └──────────┘
+          │                │
+          │                ├──────────────┐
+          │                │              │
+          ▼                ▼              ▼
+     ┌──────────┐     ┌──────────┐  ┌──────────┐
+     │   Deal   │     │   Memo   │  │   Call   │
+     │Workspace │     │  Editor  │  │  Views   │
+     └──────────┘     └──────────┘  └──────────┘
+```
 
 ---
 
 ## 3. Screen Inventory
 
-### 3.1 Conversation Home
+### 3.1 Deal Intake Flow
 
-#### HOME-001: Morning Briefing State
+#### 3.1.1 Conversational Home
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | HOME-001 |
-| **Name** | Morning Briefing State |
-| **Type** | State |
-| **Purpose** | Welcome user with contextual summary of overnight activity and suggested actions |
-| **Entry Points** | App launch (first visit of day), Return after extended absence |
-| **Exit Points** | Any sidebar item, Command bar action, Click on briefing item |
-| **Key Components** | AI greeting, Activity summary cards, Suggested actions, Quick action buttons |
-| **AI Presence** | AI initiates with personalized greeting and briefing |
-| **Mobile Variant** | Same content, vertical card layout, voice output option |
-| **Related Screens** | HOME-002, DEALS-001, DEALS-003 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Landing page; AI greeting, morning briefing, conversation interface |
+| **Entry Points** | App launch, Logo click, 💬 icon, "Go home" command |
+| **Exit Points** | Any conversation action, icon rail clicks, command bar |
+| **Key Components** | AI greeting, conversation history, message input, voice button |
+| **Mobile Difference** | Full screen; voice button more prominent |
 
-**Sample AI Greeting (Warm personality):**
-> "Good morning, Sarah! Here's what happened while you were away: 3 new deals came in overnight—TechCo looks promising with a fit score of 82. You have a call with Acme at 2pm, and the DataFlow memo is ready for your review. What would you like to tackle first?"
+**States:**
+- Empty (first launch, no context)
+- Morning briefing (start of day)
+- Active conversation (mid-interaction)
+- Deal context (after discussing a deal)
 
 ---
 
-#### HOME-002: Active Conversation State
+#### 3.1.2 Upload Modal
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | HOME-002 |
-| **Name** | Active Conversation State |
-| **Type** | State |
-| **Purpose** | Ongoing chat conversation with AI for queries, research, and actions |
-| **Entry Points** | Continue from briefing, Return to Home during session, Voice activation |
-| **Exit Points** | Navigate away via sidebar, AI surfaces workspace, Idle timeout |
-| **Key Components** | Message thread, Chat input, Voice button, Suggested prompts, Action cards |
-| **AI Presence** | Full conversational interface, AI responds to all messages |
-| **Mobile Variant** | Full-screen chat, voice input prominent, swipe to dismiss |
-| **Related Screens** | All screens (AI can navigate anywhere) |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Upload deck files or paste links |
+| **Entry Points** | "Add Deal" button, "Upload deck" command, drag file onto app |
+| **Exit Points** | Upload complete → Processing, Cancel → Previous screen |
+| **Key Components** | Drop zone, file browser, link input, source/referrer fields |
+| **Mobile Difference** | Full screen sheet instead of modal |
 
----
-
-#### HOME-003: Empty/New User State
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | HOME-003 |
-| **Name** | Empty/New User State |
-| **Type** | State |
-| **Purpose** | Onboard new users and guide them to first actions |
-| **Entry Points** | First login, Empty fund with no deals |
-| **Exit Points** | Start onboarding, Add first deal, Explore with AI |
-| **Key Components** | Welcome message, Getting started checklist, Sample prompts, Help links |
-| **AI Presence** | AI introduces itself and offers guidance |
-| **Mobile Variant** | Same content, simplified layout |
-| **Related Screens** | ONBOARD-001, DEALS-004 |
+**States:**
+- Empty (awaiting input)
+- File selected (preview shown)
+- Link pasted (validating)
+- Uploading (progress bar)
+- Error (invalid file/link)
 
 ---
 
-#### HOME-004: Voice Input Mode
+#### 3.1.3 Processing State
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | HOME-004 |
-| **Name** | Voice Input Mode |
-| **Type** | State |
-| **Purpose** | Hands-free voice interaction with AI |
-| **Entry Points** | Tap voice button, Long-press floating button (mobile), "Hey [AI Name]" |
-| **Exit Points** | Release to send, Tap to cancel, Voice response completes |
-| **Key Components** | Audio waveform visualization, Cancel button, Voice level indicator |
-| **AI Presence** | AI listens and responds with voice (if enabled) |
-| **Mobile Variant** | Full-screen takeover with large waveform |
-| **Related Screens** | HOME-002 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Show AI processing progress for deck parsing |
+| **Entry Points** | After upload completes |
+| **Exit Points** | Auto-transition to Deal Workspace when complete |
+| **Key Components** | Progress stages, animated indicators, cancel option |
+| **Mobile Difference** | Same as desktop |
 
----
-
-### 3.2 Deals
-
-#### DEALS-001: Pipeline List View
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-001 |
-| **Name** | Pipeline List View |
-| **Type** | Screen |
-| **Purpose** | View and manage all deals in a sortable, filterable list |
-| **Entry Points** | Sidebar "Deals", Command bar "show deals", AI "show me the pipeline" |
-| **Exit Points** | Click deal → DEALS-003, Create deal → DEALS-004, Switch to Kanban → DEALS-002 |
-| **Key Components** | Data table, Column headers (sortable), Filter button, View toggle, Search, Add Deal button |
-| **AI Presence** | Contextual AI panel available via Cmd+/, AI search via command bar |
-| **Mobile Variant** | Card list instead of table, swipe actions, pull-to-refresh |
-| **Related Screens** | DEALS-002, DEALS-003, DEALS-004 |
-
-**Columns (Default):**
-| Column | Sortable | Filterable |
-|--------|----------|------------|
-| Company | Yes | Yes (search) |
-| Stage | Yes | Yes (multi-select) |
-| Fit Score | Yes | Yes (range) |
-| Owner | Yes | Yes (multi-select) |
-| Last Activity | Yes | Yes (date range) |
-| Source | No | Yes (multi-select) |
+**Progress Stages Shown:**
+1. "Uploading deck..."
+2. "Parsing content..."
+3. "Extracting metrics..."
+4. "Scoring thesis fit..."
+5. "Enriching with research..."
+6. "Creating deal record..."
 
 ---
 
-#### DEALS-001a: Filter Panel (Drawer)
+#### 3.1.4 Deal Created Confirmation
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-001a |
-| **Name** | Filter Panel |
-| **Type** | Drawer |
-| **Purpose** | Apply complex filters to pipeline view |
-| **Entry Points** | Click Filter button on DEALS-001 |
-| **Exit Points** | Apply filters, Clear all, Click outside to close |
-| **Key Components** | Filter groups (Stage, Score, Owner, Date, Source), Apply button, Clear button, Save filter option |
-| **AI Presence** | None directly; AI search is alternative |
-| **Mobile Variant** | Full-screen modal instead of drawer |
-| **Related Screens** | DEALS-001 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Confirm deal creation, show initial results |
+| **Entry Points** | Processing completes |
+| **Exit Points** | "View Deal" → Deal Workspace, "Add Another" → Upload Modal |
+| **Key Components** | Deal summary card, fit score, key fields, action buttons |
+| **Mobile Difference** | Full screen with prominent CTA |
 
 ---
 
-#### DEALS-002: Pipeline Kanban View
+### 3.2 Call Workflow
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-002 |
-| **Name** | Pipeline Kanban View |
-| **Type** | Screen |
-| **Purpose** | Visual pipeline management with drag-and-drop stage changes |
-| **Entry Points** | View toggle from DEALS-001, Command bar "kanban view" |
-| **Exit Points** | Click card → DEALS-003, Switch to List → DEALS-001 |
-| **Key Components** | Stage columns, Deal cards, Drag handles, Column headers with count, Collapse/expand columns |
-| **AI Presence** | Contextual AI panel available via Cmd+/ |
-| **Mobile Variant** | Horizontal scroll columns, tap to expand card |
-| **Related Screens** | DEALS-001, DEALS-003 |
+#### 3.2.1 Call Prep View
 
-**Card Content:**
-- Company name and logo
-- Fit score badge
-- Owner avatar
-- Days in stage indicator
-- Quick action menu (...)
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Display AI-generated call prep document |
+| **Entry Points** | Calendar event, "Prep for call" command, deal workspace action |
+| **Exit Points** | Edit → Edit mode, Done → Deal workspace, Join call → Video |
+| **Key Components** | Company overview, hypothesis, questions list, concerns, agenda |
+| **Mobile Difference** | Scrollable single column; quick-glance mode |
+
+**States:**
+- Generated (AI content, unreviewed)
+- Reviewed (user has scrolled through)
+- Edited (user made changes)
+- Finalized (marked ready)
 
 ---
 
-#### DEALS-003: Deal Workspace
+#### 3.2.2 Call Prep Edit Mode
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-003 |
-| **Name** | Deal Workspace |
-| **Type** | Screen |
-| **Purpose** | Comprehensive view of a single deal with all related information |
-| **Entry Points** | Click deal from list/kanban, Command bar "show [company]", AI "tell me about [company]" |
-| **Exit Points** | Back to pipeline, Navigate to related memo, Navigate to call |
-| **Key Components** | Header (company, score, stage, owner), Tab bar, Content area, AI panel (embedded) |
-| **AI Presence** | Embedded AI panel specific to this deal context |
-| **Mobile Variant** | Tabs become horizontal scroll, AI panel is bottom sheet |
-| **Related Screens** | DEALS-001, MEMOS-002, CALLS-003 |
-
-**Header Elements:**
-| Element | Interactive |
-|---------|-------------|
-| Company name | Editable on click |
-| Company logo | Uploadable |
-| Fit score | Click for detail expansion |
-| Stage dropdown | Select to change stage |
-| Owner selector | Assign/reassign |
-| Actions menu | Archive, Delete, Flag for partner |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Edit/customize call prep |
+| **Entry Points** | "Edit" button on Call Prep View |
+| **Exit Points** | Save → Call Prep View, Cancel → Discard changes |
+| **Key Components** | Rich text editor, section reordering, add question button |
+| **Mobile Difference** | Full screen editor with simplified toolbar |
 
 ---
 
-#### DEALS-003a: Overview Tab
+#### 3.2.3 Active Call State
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-003a |
-| **Name** | Deal Overview Tab |
-| **Type** | Tab Content |
-| **Purpose** | Summary view of key deal information |
-| **Entry Points** | Default tab when opening Deal Workspace |
-| **Exit Points** | Switch tabs, Click through to detail |
-| **Key Components** | AI summary card, Metrics grid, Thesis fit rationale, Team section, Funding section, Quick actions |
-| **AI Presence** | AI summary is prominent; "Ask about this deal" prompt |
-| **Mobile Variant** | Vertical card stack, collapsible sections |
-| **Related Screens** | DEALS-003b, DEALS-003c |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Minimal UI during call (AI is recording) |
+| **Entry Points** | Call starts (detected via calendar) |
+| **Exit Points** | Call ends → Summary generation |
+| **Key Components** | Recording indicator, quick notes input, key moment flags |
+| **Mobile Difference** | Floating overlay; doesn't interfere with video app |
 
----
-
-#### DEALS-003b: Timeline Tab
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-003b |
-| **Name** | Deal Timeline Tab |
-| **Type** | Tab Content |
-| **Purpose** | Chronological activity feed for the deal |
-| **Entry Points** | Click Timeline tab in Deal Workspace |
-| **Exit Points** | Click activity item, Switch tabs |
-| **Key Components** | Activity feed, Filter dropdown, Activity items (calls, emails, notes, AI actions), Add note button |
-| **AI Presence** | AI actions appear in timeline with attribution |
-| **Mobile Variant** | Same vertical feed, tap to expand items |
-| **Related Screens** | CALLS-003, MEMOS-002 |
-
-**Activity Types:**
-| Type | Icon | Description |
-|------|------|-------------|
-| Call | 📞 | Call completed with summary link |
-| Email | ✉️ | Email sent/received |
-| Note | 📝 | Manual note added |
-| Stage Change | 🔄 | Deal moved to new stage |
-| AI Action | ✦ | AI-initiated action (parsing, research, etc.) |
-| Document | 📄 | Document uploaded |
-| Comment | 💬 | Team comment added |
+**States:**
+- Joining (AI connecting)
+- Recording (active)
+- Paused (if applicable)
+- Ending (processing starting)
 
 ---
 
-#### DEALS-003c: Documents Tab
+#### 3.2.4 Summary Review
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-003c |
-| **Name** | Deal Documents Tab |
-| **Type** | Tab Content |
-| **Purpose** | Access all documents associated with the deal |
-| **Entry Points** | Click Documents tab in Deal Workspace |
-| **Exit Points** | Open document viewer, Upload new document |
-| **Key Components** | Document list, Upload button, Document categories, Search, Preview thumbnails |
-| **AI Presence** | "Summarize this document" action on each |
-| **Mobile Variant** | Grid view of thumbnails, tap to preview |
-| **Related Screens** | DEALS-003c-1 (Document Viewer) |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Review AI-generated call summary |
+| **Entry Points** | Call ends, notification tap, deal workspace |
+| **Exit Points** | Approve → Deal updated, Edit → Summary edit mode |
+| **Key Components** | Summary sections, metric extractions, correction buttons, approve CTA |
+| **Mobile Difference** | Card-based layout for each section |
 
-**Document Categories:**
-- Pitch Deck
-- Memos
-- Call Transcripts
-- Data Room
-- Other
+**States:**
+- Just generated (new, unreviewed)
+- Reviewing (user scrolling)
+- Has corrections (user made inline edits)
+- Approved (finalized)
 
 ---
 
-#### DEALS-004: Deal Creation Modal
+#### 3.2.5 Transcript View
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-004 |
-| **Name** | Deal Creation Modal |
-| **Type** | Modal |
-| **Purpose** | Create a new deal record via multiple methods |
-| **Entry Points** | "Add Deal" button, Command bar "new deal", AI "create a deal for [company]" |
-| **Exit Points** | Save deal, Cancel, Close modal |
-| **Key Components** | Tab bar (Manual, Upload, Link), Form fields, Submit button |
-| **AI Presence** | AI processes deck if uploaded |
-| **Mobile Variant** | Full-screen modal with camera option for deck photos |
-| **Related Screens** | DEALS-003 |
-
-**Creation Methods:**
-1. **Manual Entry**: Company name (required), optional fields
-2. **Deck Upload**: Drag-and-drop or file picker
-3. **Link Import**: Paste DocSend/Google Drive URL
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | View full call transcript with search and annotations |
+| **Entry Points** | "View transcript" from summary, deal documents tab |
+| **Exit Points** | Back → Previous view, Citation click → Jump to timestamp |
+| **Key Components** | Transcript text, speaker labels, timestamps, search, highlights |
+| **Mobile Difference** | Simplified view; search via voice |
 
 ---
 
-#### DEALS-005: Deal Comparison Modal
+### 3.3 Memo Creation Flow
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | DEALS-005 |
-| **Name** | Deal Comparison Modal |
-| **Type** | Modal |
-| **Purpose** | Compare 2-4 deals side by side |
-| **Entry Points** | Select multiple deals → Compare action, Command bar "compare [deal] and [deal]" |
-| **Exit Points** | Close modal, Click deal to open workspace |
-| **Key Components** | Deal selector, Comparison table, Highlight differences toggle |
-| **AI Presence** | "Summarize comparison" button |
-| **Mobile Variant** | Swipe between deals instead of side-by-side |
-| **Related Screens** | DEALS-001, DEALS-003 |
+#### 3.3.1 Memo Generation Trigger
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Initiate memo generation (modal/toast) |
+| **Entry Points** | Stage change to Pre-IC, "Generate memo" command |
+| **Exit Points** | Confirm → Processing, Cancel → Deal workspace |
+| **Key Components** | Template selection (if multiple), confirm button, estimated time |
+| **Mobile Difference** | Bottom sheet |
 
 ---
 
-### 3.3 Memos
+#### 3.3.2 Memo Generation Progress
 
-#### MEMOS-001: Memo List
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Show memo drafting progress |
+| **Entry Points** | After generation trigger confirmed |
+| **Exit Points** | Complete → Memo Editor |
+| **Key Components** | Section-by-section progress, preview of completed sections |
+| **Mobile Difference** | Full screen with progress list |
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | MEMOS-001 |
-| **Name** | Memo List |
-| **Type** | Screen |
-| **Purpose** | View and manage all investment memos |
-| **Entry Points** | Sidebar "Memos", Command bar "show memos" |
-| **Exit Points** | Click memo → MEMOS-002, Create new memo |
-| **Key Components** | Memo cards, Status tabs (Draft, Review, Final), Filter, Search, New Memo button |
-| **AI Presence** | Contextual AI panel available |
-| **Mobile Variant** | Card list, status as colored badges |
-| **Related Screens** | MEMOS-002, DEALS-003 |
-
-**Memo Card Content:**
-- Deal/Company name
-- Status badge (Draft, In Review, Final)
-- Last edited timestamp
-- Editor/Author
-- Progress indicator (sections complete)
+**Progress Stages:**
+- Executive Summary
+- Company Overview
+- Market Analysis
+- Traction & Metrics
+- Team Assessment
+- Competitive Landscape
+- Risks
+- Recommendation
 
 ---
 
-#### MEMOS-002: Memo Editor
+#### 3.3.3 Memo Editor
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | MEMOS-002 |
-| **Name** | Memo Editor |
-| **Type** | Screen |
-| **Purpose** | Edit and refine investment memo content |
-| **Entry Points** | Click memo from list, "Edit memo" from deal workspace, AI "generate memo for [deal]" |
-| **Exit Points** | Back to list, Navigate to deal, Mark as Final |
-| **Key Components** | Section navigation, Rich text editor, AI attribution badges, Citation links, Comment threads, Action bar |
-| **AI Presence** | Embedded AI panel, Regenerate section button, AI content badges |
-| **Mobile Variant** | Section-by-section editing, simplified toolbar |
-| **Related Screens** | MEMOS-001, MEMOS-002b, MEMOS-002c, DEALS-003 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Edit AI-generated memo |
+| **Entry Points** | Generation complete, "Edit memo" from deal workspace |
+| **Exit Points** | Save → Deal workspace, Share → Partner notification |
+| **Key Components** | Section navigation, rich editor, AI attribution badges, citation panel |
+| **Mobile Difference** | Single section view; swipe between sections |
 
-**Editor Features:**
-| Feature | Description |
-|---------|-------------|
-| Section nav | Left sidebar with section list |
-| AI badges | Subtle indicator on AI-generated content |
-| Citations | Inline citation links to sources |
-| Comments | Highlight text to add comment |
-| Regenerate | Button to regenerate section with feedback |
-| Version indicator | Shows draft/review/final status |
-
----
-
-#### MEMOS-002b: Citation Panel (Drawer)
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | MEMOS-002b |
-| **Name** | Citation Panel |
-| **Type** | Drawer |
-| **Purpose** | View and verify sources for AI-generated claims |
-| **Entry Points** | Click citation link in memo, "View sources" button |
-| **Exit Points** | Close drawer, Click source to open original |
-| **Key Components** | Citation list, Source preview, Link to original, Confidence indicator |
-| **AI Presence** | Citations are AI-generated |
-| **Mobile Variant** | Bottom sheet with source preview |
-| **Related Screens** | MEMOS-002, CALLS-003, DEALS-003c |
+**Layout (Desktop):**
+```
+┌────────────────────────────────────────────────────────┐
+│  [← Back]  Memo: Acme                    [Share] [⋮]  │
+├──────────┬────────────────────────────────┬───────────┤
+│          │                                │           │
+│ Sections │     Editor Area                │ Citations │
+│          │                                │           │
+│ • Exec   │  ## Executive Summary          │ [Source 1]│
+│ • Company│                                │ [Source 2]│
+│ • Market │  Acme is a B2B SaaS company... │           │
+│ • Traction                                │           │
+│ • Team   │  [AI ✦]                        │           │
+│ • Risks  │                                │           │
+│          │                                │           │
+└──────────┴────────────────────────────────┴───────────┘
+```
 
 ---
 
-#### MEMOS-002c: Version History (Drawer)
+#### 3.3.4 Memo Version History
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | MEMOS-002c |
-| **Name** | Version History |
-| **Type** | Drawer |
+| Attribute | Details |
+|-----------|---------|
 | **Purpose** | View and restore previous memo versions |
-| **Entry Points** | "History" button in editor toolbar |
-| **Exit Points** | Close drawer, Restore version |
-| **Key Components** | Version list (timestamp, author), Diff view, Restore button, Compare toggle |
-| **AI Presence** | None |
-| **Mobile Variant** | Full-screen modal with version list |
-| **Related Screens** | MEMOS-002 |
+| **Entry Points** | "Version history" in memo editor menu |
+| **Exit Points** | Close → Editor, Restore → Confirm modal |
+| **Key Components** | Version list, timestamp, author, diff view, restore button |
+| **Mobile Difference** | Full screen list; tap to preview |
 
 ---
 
-#### MEMOS-002d: Regenerate Section Modal
+#### 3.3.5 Section Regeneration Modal
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | MEMOS-002d |
-| **Name** | Regenerate Section Modal |
-| **Type** | Modal |
-| **Purpose** | Regenerate a memo section with specific feedback |
-| **Entry Points** | "Regenerate" button on memo section |
-| **Exit Points** | Accept new version, Keep original, Cancel |
-| **Key Components** | Feedback tags, Custom feedback input, Preview of new content, Compare toggle |
-| **AI Presence** | AI regenerates based on feedback |
-| **Mobile Variant** | Full-screen modal |
-| **Related Screens** | MEMOS-002 |
-
-**Feedback Tags:**
-- Too optimistic
-- Too pessimistic
-- Add more detail
-- Make more concise
-- Missing key information
-- Wrong focus
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Regenerate specific memo section with feedback |
+| **Entry Points** | "Regenerate" button on section |
+| **Exit Points** | Generate → New version appears, Cancel → No change |
+| **Key Components** | Feedback tags, free text input, generate button |
+| **Mobile Difference** | Bottom sheet |
 
 ---
 
-### 3.4 Calls
+### 3.4 Partner Review Flow
 
-#### CALLS-001: Upcoming Calls List
+#### 3.4.1 Partner Notification View
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | CALLS-001 |
-| **Name** | Upcoming Calls List |
-| **Type** | Screen |
-| **Purpose** | View scheduled calls and access call prep |
-| **Entry Points** | Sidebar "Calls", Command bar "show calls" |
-| **Exit Points** | Click call → CALLS-002, View past call → CALLS-003 |
-| **Key Components** | Call list (upcoming + past tabs), Calendar toggle, Prep status indicator, Quick prep button |
-| **AI Presence** | Contextual AI panel available |
-| **Mobile Variant** | Card list with swipe to prep |
-| **Related Screens** | CALLS-002, CALLS-003, DEALS-003 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Show notification that requires partner attention |
+| **Entry Points** | Push notification tap, notification center |
+| **Exit Points** | Action taken → Deal/Memo, Dismiss → Notification center |
+| **Key Components** | Context summary, preview, action buttons |
+| **Mobile Difference** | Full notification with inline actions |
 
 ---
 
-#### CALLS-002: Call Prep View
+#### 3.4.2 Quick Deal View (Partner)
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | CALLS-002 |
-| **Name** | Call Prep View |
-| **Type** | Screen |
-| **Purpose** | Review and customize AI-generated call prep |
-| **Entry Points** | Click "Prep" from call list, Navigate from deal workspace |
-| **Exit Points** | Mark as finalized, Navigate to deal |
-| **Key Components** | Company overview, Hypothesis, Key questions, Concerns, Agenda, Edit buttons, Finalize button |
-| **AI Presence** | AI generates all content; edit to customize |
-| **Mobile Variant** | Collapsible sections, voice readout option |
-| **Related Screens** | CALLS-001, DEALS-003 |
-
-**Prep Sections:**
-1. Company Overview
-2. Thesis Fit Hypothesis
-3. Key Questions (reorderable)
-4. Concerns to Probe
-5. Suggested Agenda
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Summarized deal view optimized for quick partner review |
+| **Entry Points** | "Quick view" from notification, voice response |
+| **Exit Points** | "Full view" → Deal workspace, Action → Pipeline update |
+| **Key Components** | Key metrics card, fit score, AI summary, approve/pass buttons |
+| **Mobile Difference** | Card stack; swipe to approve/pass |
 
 ---
 
-#### CALLS-003: Transcript View
+#### 3.4.3 Approval Confirmation
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | CALLS-003 |
-| **Name** | Transcript View |
-| **Type** | Screen |
-| **Purpose** | View full call transcript with AI summary and corrections |
-| **Entry Points** | Click completed call from list, Navigate from deal timeline |
-| **Exit Points** | Navigate to deal, Navigate to summary |
-| **Key Components** | Full transcript, Speaker labels, Timestamps, Summary panel, Correction mode, Search |
-| **AI Presence** | Summary panel, "Ask about this call" prompt |
-| **Mobile Variant** | Summary first, tap to expand transcript |
-| **Related Screens** | CALLS-004, DEALS-003 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Confirm partner approval action |
+| **Entry Points** | Approve button on deal/memo |
+| **Exit Points** | Confirm → Action taken, Cancel → Previous view |
+| **Key Components** | Action summary, optional comment, confirm button |
+| **Mobile Difference** | Bottom sheet |
 
 ---
 
-#### CALLS-003e: Correction Mode
+### 3.5 Founder Interaction Flow
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | CALLS-003e |
-| **Name** | Transcript Correction Mode |
-| **Type** | State |
-| **Purpose** | Correct AI extraction errors in call summary |
-| **Entry Points** | Click "Correct" on a metric or summary item |
-| **Exit Points** | Save correction, Cancel |
-| **Key Components** | Editable field, Original value, Correction input, Optional explanation, Save button |
-| **AI Presence** | AI learns from corrections |
-| **Mobile Variant** | Bottom sheet with input |
-| **Related Screens** | CALLS-003, CALLS-004 |
+#### 3.5.1 Gap Detection Panel
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Show AI-identified information gaps on a deal |
+| **Entry Points** | Deal workspace (automatic), "Show gaps" command |
+| **Exit Points** | "Contact founder" → Outreach approval, Dismiss → Stays visible |
+| **Key Components** | Gap list, priority indicators, suggested questions |
+| **Mobile Difference** | Collapsible card in deal view |
 
 ---
 
-#### CALLS-004: Call Summary View
+#### 3.5.2 Outreach Approval Modal
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | CALLS-004 |
-| **Name** | Call Summary View |
-| **Type** | Screen |
-| **Purpose** | Review and edit AI-generated call summary |
-| **Entry Points** | "View Summary" from transcript, Navigate from deal timeline |
-| **Exit Points** | Back to transcript, Approve summary, Edit summary |
-| **Key Components** | Key learnings, Metrics table, Risks, Open questions, Next steps, Edit mode, Approve button |
-| **AI Presence** | All content AI-generated with edit capability |
-| **Mobile Variant** | Collapsible sections, inline editing |
-| **Related Screens** | CALLS-003, DEALS-003 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Review and approve AI outreach to founder |
+| **Entry Points** | "Contact founder" from gap panel |
+| **Exit Points** | Approve → Email/Call initiated, Edit → Modify questions, Cancel |
+| **Key Components** | Question list editor, channel selector (email/call), preview, approve |
+| **Mobile Difference** | Full screen with sections |
 
 ---
 
-### 3.5 Settings
+#### 3.5.3 Email Draft Preview
 
-#### SETTINGS-001: Fund Configuration
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | SETTINGS-001 |
-| **Name** | Fund Configuration |
-| **Type** | Screen |
-| **Purpose** | Configure fund-wide settings (thesis, workflow, templates) |
-| **Entry Points** | Sidebar "Settings" → Fund Configuration tab |
-| **Exit Points** | Navigate to subsection, Back to settings overview |
-| **Key Components** | Settings navigation, Configuration cards, Status indicators |
-| **AI Presence** | None directly |
-| **Mobile Variant** | List of setting categories |
-| **Related Screens** | SETTINGS-001a through SETTINGS-001d |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Preview AI-generated founder email before sending |
+| **Entry Points** | Email channel selected in outreach approval |
+| **Exit Points** | Send → Email sent, Edit → Modify draft, Cancel |
+| **Key Components** | Email preview, edit button, send button |
+| **Mobile Difference** | Full screen email view |
 
 ---
 
-#### SETTINGS-001a: Thesis Configuration
+#### 3.5.4 Founder Response View
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | SETTINGS-001a |
-| **Name** | Thesis Configuration |
-| **Type** | Screen |
-| **Purpose** | Configure investment thesis criteria for fit scoring |
-| **Entry Points** | Fund Configuration → Thesis |
-| **Exit Points** | Save changes, Cancel, Back to Fund Configuration |
-| **Key Components** | Hard constraints section, Soft preferences section, Weighting sliders, Preview score impact |
-| **AI Presence** | Preview how changes affect sample deals |
-| **Mobile Variant** | Multi-step wizard format |
-| **Related Screens** | SETTINGS-001, ONBOARD-002 |
-
-**Configuration Sections:**
-1. **Hard Constraints**: Stage, Geography, Check Size, Excluded Sectors
-2. **Soft Preferences**: Team vs Market vs Traction weights, Sector appetites, Business model preferences
-3. **Preview**: Sample deals with new vs old scores
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | View and verify parsed founder response |
+| **Entry Points** | Notification of founder reply |
+| **Exit Points** | Approve parsing → Deal updated, Correct → Edit fields |
+| **Key Components** | Original email, parsed data, field mappings, approve/correct |
+| **Mobile Difference** | Two-panel: original vs parsed |
 
 ---
 
-#### SETTINGS-001b: Pipeline Stages
+#### 3.5.5 AI Call Scheduling
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | SETTINGS-001b |
-| **Name** | Pipeline Stages |
-| **Type** | Screen |
-| **Purpose** | Configure deal pipeline stages and requirements |
-| **Entry Points** | Fund Configuration → Pipeline Stages |
-| **Exit Points** | Save changes, Back to Fund Configuration |
-| **Key Components** | Stage list (reorderable), Add stage button, Stage requirements, Permissions per stage |
-| **AI Presence** | None |
-| **Mobile Variant** | Drag handle for reorder, tap to edit |
-| **Related Screens** | SETTINGS-001, DEALS-003 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Schedule AI-led call with founder |
+| **Entry Points** | Call channel selected in outreach approval |
+| **Exit Points** | Schedule sent → Awaiting confirmation, Cancel |
+| **Key Components** | Time slot selector, duration, topic summary, send invite |
+| **Mobile Difference** | Calendar picker optimized for touch |
 
 ---
 
-#### SETTINGS-002: User Preferences
+### 3.6 IC Process Flow
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | SETTINGS-002 |
-| **Name** | User Preferences |
-| **Type** | Screen |
-| **Purpose** | Configure individual user settings |
-| **Entry Points** | Sidebar "Settings" → User Preferences, User menu → Preferences |
-| **Exit Points** | Save changes, Back |
-| **Key Components** | Notification settings, AI personality selector, Appearance toggle, Voice settings |
-| **AI Presence** | Personality preview |
-| **Mobile Variant** | Standard settings list UI |
-| **Related Screens** | SETTINGS-002a through SETTINGS-002d |
+#### 3.6.1 IC Packet View
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | View compiled IC materials |
+| **Entry Points** | "IC packet" from deal, IC meeting notification |
+| **Exit Points** | Download PDF, Share link, Open memo |
+| **Key Components** | Material list, memo preview, open questions, export options |
+| **Mobile Difference** | Document list with previews |
 
 ---
 
-#### SETTINGS-003: Integrations
+#### 3.6.2 IC Meeting Recording State
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | SETTINGS-003 |
-| **Name** | Integrations |
-| **Type** | Screen |
-| **Purpose** | Connect and manage external integrations |
-| **Entry Points** | Sidebar "Settings" → Integrations |
-| **Exit Points** | Connect integration, Manage integration, Back |
-| **Key Components** | Integration cards, Connection status, Last sync time, Configure button |
-| **AI Presence** | None |
-| **Mobile Variant** | Card list with status badges |
-| **Related Screens** | SETTINGS-003a through SETTINGS-003d |
-
-**Integration Cards:**
-| Integration | Status Options |
-|-------------|----------------|
-| CRM (Affinity) | Not connected, Connected, Error |
-| Calendar (Google/Outlook) | Not connected, Connected |
-| Email | Not configured, Active |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Indicate AI is recording IC meeting |
+| **Entry Points** | IC meeting starts with AI note-taker |
+| **Exit Points** | Meeting ends → Summary generation |
+| **Key Components** | Recording indicator, deals being discussed, pause control |
+| **Mobile Difference** | Minimal overlay |
 
 ---
 
-#### SETTINGS-004: Team Management
+#### 3.6.3 IC Summary View
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | SETTINGS-004 |
-| **Name** | Team Management |
-| **Type** | Screen |
-| **Purpose** | Manage fund team members and permissions |
-| **Entry Points** | Sidebar "Settings" → Team (Partners only) |
-| **Exit Points** | Invite user, Edit user, Back |
-| **Key Components** | User list table, Invite button, Role badges, Action menu per user |
-| **AI Presence** | None |
-| **Mobile Variant** | User cards with role indicator |
-| **Related Screens** | SETTINGS-004a through SETTINGS-004e |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Review AI-captured IC decisions and discussion |
+| **Entry Points** | IC meeting ends, notification |
+| **Exit Points** | Confirm decisions → Deals updated, Edit → Modify |
+| **Key Components** | Per-deal decisions, vote counts, action items, confirm button |
+| **Mobile Difference** | Card per deal; swipe through |
 
 ---
 
-### 3.6 Onboarding
+#### 3.6.4 Decision Confirmation Modal
 
-#### ONBOARD-001: Welcome Screen
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | ONBOARD-001 |
-| **Name** | Welcome Screen |
-| **Type** | Screen |
-| **Purpose** | Welcome new fund and introduce AI assistant |
-| **Entry Points** | First login for new fund |
-| **Exit Points** | Start setup → ONBOARD-002 |
-| **Key Components** | AI introduction, Value proposition, Start button, Estimated time |
-| **AI Presence** | AI introduces itself with personality preview |
-| **Mobile Variant** | Same content, optimized layout |
-| **Related Screens** | ONBOARD-002 |
-
-**AI Introduction (Warm personality):**
-> "Hi! I'm [AI Name], and I'm excited to be your fund's new AI teammate. Over the next few minutes, I'll learn about your investment thesis, your workflow, and how you like to work. The more you share, the more helpful I can be. Ready to get started?"
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Confirm AI-detected IC decision before applying |
+| **Entry Points** | AI detects decision in transcript |
+| **Exit Points** | Confirm → Deal updated, Edit → Modify decision, Reject |
+| **Key Components** | Decision summary, conditions, deal stage change preview |
+| **Mobile Difference** | Bottom sheet |
 
 ---
 
-#### ONBOARD-002: Thesis Wizard
+### 3.7 Onboarding Flow
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | ONBOARD-002 |
-| **Name** | Thesis Wizard |
-| **Type** | Screen |
-| **Purpose** | Guided configuration of investment thesis |
-| **Entry Points** | Welcome screen → Start, Settings → Thesis (re-configuration) |
-| **Exit Points** | Complete → ONBOARD-003, Skip (with warning) |
-| **Key Components** | Step indicator, Current step content, Back/Next buttons, Progress bar |
-| **AI Presence** | AI explains each step and asks clarifying questions |
-| **Mobile Variant** | Same wizard flow, full-screen steps |
-| **Related Screens** | ONBOARD-001, ONBOARD-003, SETTINGS-001a |
+#### 3.7.1 Welcome Screen
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | First-time user greeting |
+| **Entry Points** | First login (new user) |
+| **Exit Points** | "Get Started" → Wizard (new fund) or Tour (existing fund) |
+| **Key Components** | AI greeting, logo, value prop, get started CTA |
+| **Mobile Difference** | Full screen; large CTA |
+
+---
+
+#### 3.7.2 Fund Setup Wizard
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Guide fund admin through initial configuration |
+| **Entry Points** | New fund creation, "Get Started" from welcome |
+| **Exit Points** | Complete → Conversational Home, Skip → Partial config |
+| **Key Components** | Step indicator, current step form, next/back buttons, skip option |
+| **Mobile Difference** | One step per screen; swipe navigation |
 
 **Wizard Steps:**
-1. Stage preferences
-2. Geography focus
-3. Check size range
-4. Sector preferences
-5. Soft criteria weighting
+1. Fund basics (name, logo)
+2. Invite team
+3. Thesis configuration
+4. Pipeline stages
+5. Integrations
+6. Import historical deals
 
 ---
 
-#### ONBOARD-006: Import Wizard
+#### 3.7.3 Thesis Configuration Step
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | ONBOARD-006 |
-| **Name** | Import Wizard |
-| **Type** | Screen |
-| **Purpose** | Import historical deals from external sources |
-| **Entry Points** | Onboarding flow, Settings → Import |
-| **Exit Points** | Complete import, Skip |
-| **Key Components** | Source selector, File upload, Field mapping, Preview, Progress |
-| **AI Presence** | AI assists with field mapping suggestions |
-| **Mobile Variant** | Limited—recommend desktop for import |
-| **Related Screens** | ONBOARD-005, ONBOARD-007 |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Configure investment thesis for scoring |
+| **Entry Points** | Wizard step 3, Settings → Thesis |
+| **Exit Points** | Save → Next step/Settings, Skip → Defaults used |
+| **Key Components** | Stage selector, geography picker, sector chips, preference sliders |
+| **Mobile Difference** | Section accordion; one section at a time |
 
 ---
 
-### 3.7 Global Elements
+#### 3.7.4 Integration Connection
 
-#### GLOBAL-001: Command Bar
-
-| Attribute | Value |
-|-----------|-------|
-| **ID** | GLOBAL-001 |
-| **Name** | Command Bar |
-| **Type** | Overlay |
-| **Purpose** | Universal search and command interface |
-| **Entry Points** | Cmd+K (desktop), Search icon in header |
-| **Exit Points** | Select item, Press Escape, Click outside |
-| **Key Components** | Search input, Results list, Recent items, Quick actions, Keyboard hints |
-| **AI Presence** | Natural language queries processed by AI |
-| **Mobile Variant** | Full-screen search with voice option |
-| **Related Screens** | All screens |
-
-**Command Types:**
-| Type | Example | Action |
-|------|---------|--------|
-| Search | "Acme" | Show matching deals |
-| Navigation | "deals" | Go to Deals section |
-| Natural language | "show me fintech deals" | AI processes and shows results |
-| Action | "new deal" | Open deal creation |
-| Command | "settings" | Go to settings |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Connect external services (CRM, calendar, etc.) |
+| **Entry Points** | Wizard step 5, Settings → Integrations |
+| **Exit Points** | Connected → Success confirmation, Skip → No integration |
+| **Key Components** | Service list, connect buttons, OAuth flows, status indicators |
+| **Mobile Difference** | Opens OAuth in system browser |
 
 ---
 
-#### GLOBAL-002: Notification Center
+#### 3.7.5 Historical Import
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | GLOBAL-002 |
-| **Name** | Notification Center |
-| **Type** | Drawer |
-| **Purpose** | View and manage notifications |
-| **Entry Points** | Click notification bell in header |
-| **Exit Points** | Close drawer, Click notification |
-| **Key Components** | Notification list, Unread indicator, Mark all read, Settings link |
-| **AI Presence** | AI activity notifications appear here |
-| **Mobile Variant** | Full-screen Activity tab |
-| **Related Screens** | All screens, SETTINGS-002a |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Import deals from external sources |
+| **Entry Points** | Wizard step 6, Settings → Import |
+| **Exit Points** | Import complete → Summary, Skip → Empty pipeline |
+| **Key Components** | Source selector, file upload, field mapping, preview, import button |
+| **Mobile Difference** | Limited to file upload; mapping on desktop recommended |
 
 ---
 
-#### GLOBAL-003: AI Chat Panel
+#### 3.7.6 Feature Tour Overlay
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | GLOBAL-003 |
-| **Name** | AI Chat Panel (Global) |
-| **Type** | Drawer |
-| **Purpose** | Access AI assistant from any screen |
-| **Entry Points** | Cmd+/ (desktop), Floating button (mobile), "Hey [AI Name]" |
-| **Exit Points** | Close drawer, AI navigates to workspace |
-| **Key Components** | Chat input, Voice button, Message thread, Suggested prompts, Context indicator |
-| **AI Presence** | Full AI chat interface |
-| **Mobile Variant** | Bottom sheet, swipe to dismiss |
-| **Related Screens** | All screens |
-
-**Context Awareness:**
-- Panel shows current context: "You're viewing Acme deal"
-- Queries scoped to context unless specified otherwise
-- "Ask about something else" to switch context
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Guide user through key features |
+| **Entry Points** | After setup wizard, "Take tour" from help |
+| **Exit Points** | Complete → Dismiss, Skip → Dismiss |
+| **Key Components** | Highlighted element, tooltip with explanation, next/skip buttons |
+| **Mobile Difference** | Same pattern; touch-friendly targets |
 
 ---
 
-#### GLOBAL-005: Toast Notifications
+#### 3.7.7 First Deal Guided Experience
 
-| Attribute | Value |
-|-----------|-------|
-| **ID** | GLOBAL-005 |
-| **Name** | Toast Notifications |
-| **Type** | Overlay |
-| **Purpose** | Show brief feedback messages for actions |
-| **Entry Points** | System triggers (action complete, error, info) |
-| **Exit Points** | Auto-dismiss (5 seconds), Manual dismiss, Click action |
-| **Key Components** | Icon, Message, Action link (optional), Dismiss button |
-| **AI Presence** | AI completion toasts use AI icon |
-| **Mobile Variant** | Same, positioned at bottom |
-| **Related Screens** | All screens |
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Walk user through processing first real deal |
+| **Entry Points** | After setup, no deals exist |
+| **Exit Points** | Deal created → Deal workspace with contextual tips |
+| **Key Components** | AI prompts, upload guidance, celebration on completion |
+| **Mobile Difference** | Same flow; voice encouraged |
 
-**Toast Types:**
-| Type | Icon | Example |
-|------|------|---------|
-| Success | ✓ | "Deal saved" |
-| Error | ✗ | "Failed to sync" |
-| Info | ℹ | "Memo draft ready" |
-| AI | ✦ | "Call summary generated" |
+---
+
+### 3.8 Settings & Configuration
+
+#### 3.8.1 Settings Hub
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Central settings navigation |
+| **Entry Points** | ⚙️ icon, "Settings" command, user menu |
+| **Exit Points** | Category click → Sub-settings, Back → Previous view |
+| **Key Components** | Category cards/list, search, quick links |
+| **Mobile Difference** | Full screen list |
+
+**Categories:**
+- Fund Settings
+- Integrations
+- Team
+- User Preferences
+
+---
+
+#### 3.8.2 Fund Settings Page
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Configure fund-level settings |
+| **Entry Points** | Settings hub → Fund Settings |
+| **Exit Points** | Save → Confirmation, Back → Settings hub |
+| **Key Components** | Tabs for sub-sections, form fields, save button |
+| **Mobile Difference** | Accordion sections |
+
+**Sub-sections:**
+- General (name, logo, domain)
+- Thesis Config
+- Pipeline Stages
+- Memo Templates
+- Automation Rules
+- AI Personality
+
+---
+
+#### 3.8.3 Pipeline Stage Editor
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Configure custom deal stages |
+| **Entry Points** | Fund Settings → Pipeline Stages |
+| **Exit Points** | Save → Applied, Cancel → Discard changes |
+| **Key Components** | Stage list, drag reorder, add/delete, requirements editor |
+| **Mobile Difference** | Simplified; full editing on desktop |
+
+---
+
+#### 3.8.4 Automation Rules Editor
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Configure IF/THEN automation rules |
+| **Entry Points** | Fund Settings → Automation Rules |
+| **Exit Points** | Save → Rules active, Cancel → Discard |
+| **Key Components** | Rule list, rule builder, condition/action selectors, enable toggle |
+| **Mobile Difference** | View only; editing on desktop |
+
+---
+
+#### 3.8.5 Integrations Page
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Manage connected services |
+| **Entry Points** | Settings hub → Integrations |
+| **Exit Points** | Connect → OAuth flow, Disconnect → Confirmation |
+| **Key Components** | Service cards, connection status, sync status, configure button |
+| **Mobile Difference** | Card list; OAuth in browser |
+
+---
+
+#### 3.8.6 Team Management
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Manage fund users and roles |
+| **Entry Points** | Settings hub → Team |
+| **Exit Points** | Invite → Modal, Edit user → Modal |
+| **Key Components** | User list, role badges, invite button, edit/remove actions |
+| **Mobile Difference** | Simplified list; actions in menu |
+
+---
+
+#### 3.8.7 User Preferences
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Configure personal settings |
+| **Entry Points** | Settings hub → User Preferences, User menu |
+| **Exit Points** | Save → Applied immediately, Back → Settings hub |
+| **Key Components** | Notification settings, AI personality selector, appearance toggle |
+| **Mobile Difference** | Same; toggles touch-friendly |
+
+---
+
+#### 3.8.8 Notification Preferences
+
+| Attribute | Details |
+|-----------|---------|
+| **Purpose** | Configure notification channels and frequency |
+| **Entry Points** | User Preferences → Notifications |
+| **Exit Points** | Save → Applied, Back → User Preferences |
+| **Key Components** | Per-type toggles, channel selectors, frequency options |
+| **Mobile Difference** | Same layout |
 
 ---
 
 ## 4. Navigation Patterns
 
-### 4.1 Keyboard Shortcuts (Desktop)
+### 4.1 Conversational Navigation
 
-| Shortcut | Action | Context |
-|----------|--------|---------|
-| `Cmd+K` | Open Command Bar | Global |
-| `Cmd+/` | Open AI Chat Panel | Global |
-| `Cmd+N` | New Deal | Deals section |
-| `Cmd+S` | Save | Editors |
-| `Cmd+Enter` | Send message | Chat |
-| `Escape` | Close modal/drawer | Modals |
-| `G then D` | Go to Deals | Global |
-| `G then M` | Go to Memos | Global |
-| `G then C` | Go to Calls | Global |
-| `G then S` | Go to Settings | Global |
-| `G then H` | Go to Home | Global |
-| `J` / `K` | Navigate list down/up | Lists |
-| `Enter` | Open selected item | Lists |
-| `?` | Show keyboard shortcuts | Global |
-
-### 4.2 Mobile Gestures
-
-| Gesture | Action | Context |
-|---------|--------|---------|
-| Swipe left on card | Quick actions (archive, delete) | Lists |
-| Swipe right on card | Primary action (view, prep) | Lists |
-| Swipe from left edge | Go back | All screens |
-| Swipe down on drawer | Dismiss drawer | Drawers/sheets |
-| Pull down on list | Refresh | Lists |
-| Long press on mic | Voice input | Global |
-| Pinch on document | Zoom | Document viewer |
-
-### 4.3 AI-Driven Navigation
-
-Users can navigate using natural language with the AI:
+Users can navigate entirely through conversation:
 
 | User Says | AI Action |
 |-----------|-----------|
 | "Show me Acme" | Opens Acme deal workspace |
-| "Go to deals" | Navigates to Deals list |
-| "Open the DataFlow memo" | Opens memo editor |
-| "What calls do I have today?" | Shows upcoming calls |
-| "Take me to settings" | Navigates to Settings |
-| "Show me deals like this" | Opens comparison/filtered view |
+| "What's my pipeline?" | Opens Pipeline view (filtered to "My Deals") |
+| "Open the memo for DataFlow" | Opens memo editor for DataFlow |
+| "Go to settings" | Opens Settings hub |
+| "Show me notifications" | Opens Notification center |
+| "Help me prep for my 2pm call" | Opens call prep for that meeting |
 
-### 4.4 Deep Linking Structure
+**Context Awareness:**
+- "Show me their deck" (while discussing Acme) → Opens Acme's deck
+- "Go back" → Returns to previous screen
+- "What was I looking at earlier?" → Returns to recent deal/memo
 
+### 4.2 Command Bar Behavior
+
+**Activation:** Cmd+K (Mac) / Ctrl+K (Windows) or click command bar
+
+**Input Types:**
+| Input | Result |
+|-------|--------|
+| Company name | Jump to deal workspace |
+| "new deal" | Open upload modal |
+| "memo" | List recent memos, select to open |
+| "@sarah" | Open team member profile |
+| "/settings" | Open settings |
+| Natural language | AI interprets and navigates |
+
+**Command Bar Layout:**
 ```
-/                           → Conversation Home
-/deals                      → Pipeline List
-/deals/kanban               → Pipeline Kanban
-/deals/:dealId              → Deal Workspace
-/deals/:dealId/overview     → Deal Overview Tab
-/deals/:dealId/timeline     → Deal Timeline Tab
-/deals/:dealId/documents    → Deal Documents Tab
-/deals/new                  → Deal Creation Modal
-/memos                      → Memo List
-/memos/:memoId              → Memo Editor
-/memos/:memoId/preview      → Memo Preview
-/calls                      → Calls List
-/calls/:callId/prep         → Call Prep View
-/calls/:callId/transcript   → Transcript View
-/calls/:callId/summary      → Summary View
-/settings                   → Settings Overview
-/settings/fund              → Fund Configuration
-/settings/user              → User Preferences
-/settings/integrations      → Integrations
-/settings/team              → Team Management
-/onboarding                 → Onboarding Wizard
-/onboarding/:step           → Specific Onboarding Step
+┌────────────────────────────────────────────────┐
+│  🔍 Search or type a command...               │
+├────────────────────────────────────────────────┤
+│  Recent                                        │
+│  📁 Acme - Deal                               │
+│  📝 DataFlow Memo                             │
+│  📞 Call with TechCo (Yesterday)              │
+├────────────────────────────────────────────────┤
+│  Quick Actions                                 │
+│  ➕ Add new deal                              │
+│  📊 View pipeline                             │
+│  ⚙️ Open settings                             │
+└────────────────────────────────────────────────┘
 ```
+
+### 4.3 Back/Forward Behavior
+
+- **Browser back/forward**: Works as expected with URL history
+- **In-app back**: Arrow button returns to logical parent
+- **Escape key**: Closes modals/panels, then returns to previous view
+- **Conversation context**: Preserved across navigation
+
+### 4.4 Mobile-Specific Navigation
+
+| Gesture | Action |
+|---------|--------|
+| Swipe from left edge | Open hamburger menu |
+| Swipe down on conversation | Refresh/load earlier messages |
+| Long press on deal card | Quick actions menu |
+| Double tap microphone | Continuous voice mode |
+| Swipe between tabs | Navigate deal workspace tabs |
 
 ---
 
 ## 5. Component Placement
 
-### 5.1 Desktop Layout Zones
+### 5.1 AI Panel Positioning
 
-```
-┌────────────────────────────────────────────────────────────────────────┐
-│                              HEADER                                     │
-│  [Logo] [Breadcrumb/Title]               [Search] [Notifications] [User]│
-├──────────┬─────────────────────────────────────────────────┬───────────┤
-│          │                                                 │           │
-│          │                                                 │           │
-│  SIDEBAR │              MAIN CONTENT                       │ AI PANEL  │
-│          │                                                 │ (optional)│
-│  [Home]  │                                                 │           │
-│  [Deals] │                                                 │           │
-│  [Memos] │                                                 │           │
-│  [Calls] │                                                 │           │
-│  [-----] │                                                 │           │
-│  [Settin]│                                                 │           │
-│          │                                                 │           │
-└──────────┴─────────────────────────────────────────────────┴───────────┘
-```
+**Desktop:**
+- Right side panel, 320px wide
+- Collapsible via toggle button
+- Contextual to current view (deal-specific, memo-specific, etc.)
+- Persists across navigation within same context
 
-| Zone | Width | Behavior |
-|------|-------|----------|
-| Header | Full width, 56px height | Fixed, always visible |
-| Sidebar | 240px expanded, 64px collapsed | Collapsible, remembers state |
-| Main Content | Flexible | Scrollable, contains primary content |
-| AI Panel | 320px default | Contextual (in workspace), global via Cmd+/ |
+**Mobile:**
+- AI is the main interface (full screen)
+- Workspaces appear as overlays/sheets
+- Dismiss sheet to return to AI conversation
 
-### 5.2 Mobile Layout Zones
+### 5.2 Modal vs Inline Decision Framework
 
-```
-┌─────────────────────────────┐
-│         HEADER              │  ← Context-specific (back, title, actions)
-├─────────────────────────────┤
-│                             │
-│                             │
-│       MAIN CONTENT          │
-│       (scrollable)          │
-│                             │
-│                             │
-│                       [FAB] │  ← Floating Action Button (chat)
-├─────────────────────────────┤
-│  🏠     📊     🔔     👤   │  ← Bottom Tab Bar
-└─────────────────────────────┘
-```
+| Use Modal When | Use Inline When |
+|----------------|-----------------|
+| Destructive action confirmation | Non-destructive edits |
+| Multi-step process (wizard) | Single field changes |
+| Focus required (email compose) | Contextual actions |
+| Mobile: complex forms | Quick toggles |
 
-### 5.3 Component Placement by Screen
+### 5.3 Header/Navigation Persistence
 
-| Screen | Header | Sidebar | AI Panel | FAB |
-|--------|--------|---------|----------|-----|
-| Conversation Home | Minimal | Visible | N/A (is the main content) | N/A |
-| Deals List | Standard | Visible | Available (Cmd+/) | Chat |
-| Deal Workspace | Standard | Visible | Embedded right side | Chat |
-| Memo Editor | Standard | Collapsed | Embedded right side | Chat |
-| Call Prep | Standard | Visible | Available (Cmd+/) | Chat |
-| Settings | Standard | Visible | N/A | N/A |
-| Onboarding | Minimal | Hidden | N/A | N/A |
+| Screen Type | Header | Icon Rail | AI Panel |
+|-------------|--------|-----------|----------|
+| Conversational Home | ✅ | ✅ | Main content |
+| Pipeline | ✅ | ✅ | ✅ Contextual |
+| Deal Workspace | ✅ | ✅ | ✅ Deal-specific |
+| Memo Editor | ✅ (simplified) | ❌ Hidden | ✅ Citations |
+| Settings | ✅ | ✅ | ❌ Hidden |
+| Modals | ❌ Overlay | ❌ | ❌ |
+
+### 5.4 Toast/Notification Placement
+
+- **Desktop**: Top-right corner, stacked
+- **Mobile**: Top of screen, full width
+- **Duration**: Auto-dismiss after 5 seconds (errors persist)
+- **Actions**: Max 2 buttons (e.g., "View", "Dismiss")
 
 ---
 
-## 6. State Management
+## 6. Keyboard Shortcuts & Commands
 
-### 6.1 Loading States
+### 6.1 Global Shortcuts
 
-| Component | Loading Indicator | Behavior |
-|-----------|-------------------|----------|
-| Screen | Full skeleton | Show structure with animated placeholders |
-| Section | Section skeleton | Individual section shows loader |
-| List | Skeleton rows | 5 placeholder rows while loading |
-| AI Response | Typing indicator | Animated dots while AI processes |
-| Button | Spinner | Button shows spinner, disabled during action |
-| Background | Progress bar | Thin progress bar at top of screen |
+| Shortcut | Action |
+|----------|--------|
+| Cmd/Ctrl + K | Open command bar |
+| Cmd/Ctrl + / | Open keyboard shortcut help |
+| Cmd/Ctrl + N | New deal (upload) |
+| Cmd/Ctrl + F | Search in current view |
+| Cmd/Ctrl + , | Open settings |
+| Escape | Close modal/panel, clear selection |
+| ? | Open help (when not in text input) |
 
-### 6.2 Empty States
+### 6.2 Navigation Shortcuts
 
-| Screen | Empty State Content |
-|--------|---------------------|
-| Deals List | "No deals yet. Upload your first deck or create a deal manually." + Add Deal button |
-| Memos List | "No memos yet. Memos will appear here as deals progress." |
-| Calls List | "No upcoming calls. Connect your calendar to see scheduled calls." |
-| Timeline (Deal) | "No activity yet. Activity will appear as you work on this deal." |
-| Documents (Deal) | "No documents. Upload a deck or other files." |
-| Search Results | "No results found. Try a different search term." |
-| Notifications | "All caught up! No new notifications." |
+| Shortcut | Action |
+|----------|--------|
+| G then H | Go to Home (conversation) |
+| G then P | Go to Pipeline |
+| G then S | Go to Settings |
+| G then N | Go to Notifications |
+| [ | Go back |
+| ] | Go forward |
 
-### 6.3 Error States
+### 6.3 Deal/Pipeline Shortcuts
 
-| Error Type | Display | User Action |
-|------------|---------|-------------|
-| Page Error | Full-screen error message | Retry button, Back to home link |
-| Section Error | Inline error banner | Retry button, Dismiss option |
-| Form Validation | Inline field errors | Highlight fields, show messages |
-| Network Error | Toast notification | Auto-retry, manual retry option |
-| Integration Error | Settings banner | Link to integration settings |
-| AI Error | Chat message | "I encountered an error. Please try again." |
+| Shortcut | Action |
+|----------|--------|
+| J | Next deal in list |
+| K | Previous deal in list |
+| Enter | Open selected deal |
+| E | Edit deal |
+| M | Generate/open memo |
+| A | Archive deal |
+| S | Change stage (opens picker) |
 
-### 6.4 Permission States
+### 6.4 Memo Editor Shortcuts
 
-| Scenario | Display | Behavior |
-|----------|---------|----------|
-| Restricted Deal | Banner: "You don't have access" | Back button, request access link |
-| Partner-Only Setting | Disabled controls | "Contact a partner to change this" |
-| Read-Only View | Edit buttons hidden | View-only indicators |
-| Not Logged In | Redirect to login | Return to original URL after login |
+| Shortcut | Action |
+|----------|--------|
+| Cmd/Ctrl + S | Save memo |
+| Cmd/Ctrl + Shift + S | Save and share |
+| Cmd/Ctrl + B | Bold text |
+| Cmd/Ctrl + I | Italic text |
+| Cmd/Ctrl + R | Regenerate section |
+| Tab | Next section |
+| Shift + Tab | Previous section |
 
----
+### 6.5 Command Bar Commands
 
-## 7. Flow Mapping
-
-### 7.1 Deal Intake Flow
-
-```
-[Email/Upload/Link]
-       │
-       ▼
-┌─────────────────┐
-│  DEALS-004      │  Deal Creation
-│  Deal Creation  │  (or automatic via email)
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  Processing...  │  AI parses deck
-│  (GLOBAL-008)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  DEALS-003      │  Deal Workspace
-│  Deal Workspace │  (Overview tab)
-└─────────────────┘
-```
-
-### 7.2 Call Workflow
-
-```
-┌─────────────────┐
-│  CALLS-001      │  Upcoming Calls
-│  Calls List     │
-└────────┬────────┘
-         │ Click "Prep"
-         ▼
-┌─────────────────┐
-│  CALLS-002      │  Review prep, add questions
-│  Call Prep      │
-└────────┬────────┘
-         │ Call happens (AI records)
-         ▼
-┌─────────────────┐
-│  Processing...  │  AI transcribes
-│  (GLOBAL-008)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐     ┌─────────────────┐
-│  CALLS-003      │────▶│  CALLS-004      │
-│  Transcript     │     │  Summary        │
-└─────────────────┘     └────────┬────────┘
-                                 │ Approve
-                                 ▼
-                        ┌─────────────────┐
-                        │  DEALS-003      │  Updated with call data
-                        │  Deal Workspace │
-                        └─────────────────┘
-```
-
-### 7.3 Memo Creation Flow
-
-```
-┌─────────────────┐
-│  DEALS-003      │  Deal at Pre-IC stage
-│  Deal Workspace │
-└────────┬────────┘
-         │ "Generate Memo"
-         ▼
-┌─────────────────┐
-│  Processing...  │  AI drafts memo
-│  (GLOBAL-008)   │
-└────────┬────────┘
-         │
-         ▼
-┌─────────────────┐
-│  MEMOS-002      │  Edit and refine
-│  Memo Editor    │
-└────────┬────────┘
-         │ Partner reviews
-         ▼
-┌─────────────────┐
-│  MEMOS-002      │  Comments and revisions
-│  (with comments)│
-└────────┬────────┘
-         │ Mark as Final
-         ▼
-┌─────────────────┐
-│  MEMOS-003      │  Ready for IC
-│  Memo Preview   │
-└─────────────────┘
-```
-
-### 7.4 Partner Review Flow (Mobile-First)
-
-```
-┌─────────────────┐
-│  HOME           │  Morning briefing
-│  (Briefing)     │
-└────────┬────────┘
-         │ "Show me flagged deals"
-         ▼
-┌─────────────────┐
-│  DEALS-001      │  Filtered to flagged
-│  (filtered)     │
-└────────┬────────┘
-         │ Tap deal
-         ▼
-┌─────────────────┐
-│  DEALS-003      │  Review AI summary
-│  (Mobile)       │
-└────────┬────────┘
-         │ "Show me the memo"
-         ▼
-┌─────────────────┐
-│  MEMOS-003      │  Read memo
-│  Memo Preview   │
-└────────┬────────┘
-         │ Add comment
-         ▼
-┌─────────────────┐
-│  MEMOS-002f     │  Voice comment
-│  Comment Thread │
-└────────┬────────┘
-         │ Done
-         ▼
-┌─────────────────┐
-│  HOME           │  "What's next?"
-│  (Chat)         │
-└─────────────────┘
-```
+| Command | Action |
+|---------|--------|
+| `/new` | Create new deal |
+| `/memo [deal]` | Open/create memo for deal |
+| `/prep [deal]` | Open call prep for deal |
+| `/settings` | Open settings |
+| `/help` | Open help |
+| `/logout` | Log out |
 
 ---
 
-## Appendix: Screen ID Reference
+## 7. URL Structure & Deep Linking
 
-### Quick Reference Table
+### 7.1 URL Patterns
 
-| ID Range | Section |
-|----------|---------|
-| HOME-xxx | Conversation Home |
-| DEALS-xxx | Deals |
-| MEMOS-xxx | Memos |
-| CALLS-xxx | Calls |
-| SETTINGS-xxx | Settings |
-| ONBOARD-xxx | Onboarding |
-| GLOBAL-xxx | Global Elements |
+| Route | Screen |
+|-------|--------|
+| `/` | Conversational Home |
+| `/pipeline` | Pipeline List View |
+| `/pipeline/kanban` | Pipeline Kanban View |
+| `/deals/:id` | Deal Workspace (Overview tab) |
+| `/deals/:id/timeline` | Deal Workspace (Timeline tab) |
+| `/deals/:id/documents` | Deal Workspace (Documents tab) |
+| `/deals/:id/memo` | Memo Editor for deal |
+| `/deals/:id/memo/history` | Memo version history |
+| `/deals/:id/calls/:callId` | Call transcript view |
+| `/deals/:id/calls/:callId/summary` | Call summary view |
+| `/deals/:id/prep/:callId` | Call prep view |
+| `/settings` | Settings Hub |
+| `/settings/fund` | Fund Settings |
+| `/settings/integrations` | Integrations |
+| `/settings/team` | Team Management |
+| `/settings/preferences` | User Preferences |
+| `/notifications` | Notification Center |
+| `/onboarding` | Onboarding Wizard |
+| `/onboarding/step/:step` | Specific onboarding step |
 
-### Total Screen Count
+### 7.2 Query Parameters
 
-| Type | Count |
-|------|-------|
-| Primary Screens | 26 |
-| Modals | 23 |
-| Drawers | 12 |
-| Dropdowns/Popovers | 8 |
-| States | 15 |
-| **Total Documented** | **84** |
+| Parameter | Use |
+|-----------|-----|
+| `?view=kanban` | Switch pipeline view mode |
+| `?filter=my-deals` | Apply pipeline filter |
+| `?search=query` | Pre-fill search |
+| `?highlight=:id` | Scroll to and highlight item |
+| `?tab=timeline` | Select tab in deal workspace |
+
+### 7.3 Deep Link Examples
+
+```
+# Open specific deal
+https://app.aianalyst.com/deals/abc123
+
+# Open deal's memo
+https://app.aianalyst.com/deals/abc123/memo
+
+# Open pipeline filtered to fintech deals
+https://app.aianalyst.com/pipeline?filter=sector-fintech
+
+# Open specific notification
+https://app.aianalyst.com/notifications?highlight=notif456
+
+# Jump to transcript timestamp
+https://app.aianalyst.com/deals/abc123/calls/call789?t=1234
+```
+
+### 7.4 State Preservation
+
+**Preserved in URL:**
+- Current screen/route
+- Active filters and sorts
+- Selected tab
+- Search query
+- Scroll position (via hash)
+
+**Preserved in Session:**
+- Conversation context
+- Expanded/collapsed panels
+- Recent items list
+
+**Preserved in User Data:**
+- Notification preferences
+- Default views
+- Saved filters
+
+---
+
+## Appendix: Screen Count Summary
+
+| Flow | Screens/States | Modals |
+|------|---------------|--------|
+| Deal Intake | 4 | 1 |
+| Call Workflow | 5 | 0 |
+| Memo Creation | 5 | 2 |
+| Partner Review | 3 | 1 |
+| Founder Interaction | 5 | 1 |
+| IC Process | 4 | 1 |
+| Onboarding | 7 | 0 |
+| Settings | 8 | 2 |
+| Core Navigation | 5 | 0 |
+| **Total** | **46** | **8** |
+
+**Additional States:** ~38 (loading, empty, error states across screens)
+
+**Grand Total: 84 screens/states/modals**
 
 ---
 

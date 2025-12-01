@@ -11,6 +11,12 @@ const serviceAdapter = new OpenAIAdapter({ openai });
 const runtime = new CopilotRuntime();
 
 export const POST = async (req: NextRequest) => {
+    if (!process.env.OPENAI_API_KEY) {
+        console.error("❌ OPENAI_API_KEY is missing in environment variables!");
+    } else {
+        console.log("✅ OPENAI_API_KEY is present.");
+    }
+
     const { handleRequest } = copilotRuntimeNextJSAppRouterEndpoint({
         runtime,
         serviceAdapter,
