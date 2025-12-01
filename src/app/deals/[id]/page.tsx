@@ -19,7 +19,7 @@ import { DealHeader } from "@/components/features/deal-header";
 import { DealHero } from "@/components/features/deal-hero";
 import { DealMetrics } from "@/components/features/deal-metrics";
 import { DealFitScore } from "@/components/features/deal-fit-score";
-import { DebugPanel } from "@/components/features/debug-panel";
+
 
 interface PageProps {
     params: Promise<{
@@ -92,7 +92,7 @@ export default async function DealPage({ params }: PageProps) {
                     className="relative h-screen border-l border-slate-200 shadow-none z-0 w-[400px] flex-shrink-0"
                 />
 
-                <DebugPanel />
+
 
             </div>
         </DealStateProvider>

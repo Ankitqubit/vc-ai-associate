@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, TrendingUp } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, TrendingUp, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MetricUpdateCardProps {
     metricName: string;
@@ -12,44 +13,72 @@ interface MetricUpdateCardProps {
 
 export function MetricUpdateCard({ metricName, newValue, trend, status, result }: MetricUpdateCardProps) {
     const isError = status === "error" || (status === "complete" && result?.startsWith("Error"));
+    const isSuccess = status === "complete" && !isError;
 
     return (
-        <Card className={`w-full max-w-sm border-2 ${isError ? "border-red-100 bg-red-50/50" : "border-indigo-50 bg-indigo-50/30"}`}>
-            <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                        {status === "inProgress" && <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />}
-                        {status === "complete" && !isError && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
-                        {isError && <XCircle className="h-4 w-4 text-red-500" />}
-
-                        <span className="text-sm font-medium text-slate-700">
-                            {status === "inProgress" ? "Updating Metric..." : isError ? "Update Failed" : "Update Successful"}
-                        </span>
+        <div className={cn(
+            "w-full max-w-sm transition-all duration-300",
+            "rounded-lg border border-border/50",
+            "bg-gradient-to-br from-background/50 to-muted/30",
+            "p-4",
+            isError ? "border-red-200/50" : "hover:border-primary/50"
+        )}>
+            {/* Header */}
+            <div className="flex items-start justify-between mb-2">
+                <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                        <Badge variant="outline" className="bg-background/50 backdrop-blur-sm border-border/50 text-muted-foreground font-medium">
+                            {metricName}
+                        </Badge>
+                        {status === "inProgress" && (
+                            <span className="flex items-center text-xs text-indigo-500 font-medium animate-pulse">
+                                <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                                Updating...
+                            </span>
+                        )}
                     </div>
-                    <Badge variant="outline" className="bg-white text-slate-500 border-slate-200">
-                        {metricName}
-                    </Badge>
+
+                    {/* Main Value Area */}
+                    <div className="flex items-baseline gap-2 mb-1">
+                        <span className="text-2xl font-bold text-foreground">
+                            {newValue}
+                        </span>
+                        {trend && (
+                            <div className={cn(
+                                "flex items-center text-sm font-medium",
+                                trend.startsWith("+") ? "text-green-500" : "text-red-500"
+                            )}>
+                                <TrendingUp className={cn("h-4 w-4 mr-1", !trend.startsWith("+") && "rotate-180")} />
+                                {trend}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
-                <div className="bg-white rounded-lg p-3 border border-slate-100 shadow-sm flex items-center justify-between">
-                    <div>
-                        <p className="text-xs text-slate-400 uppercase tracking-wider mb-0.5">New Value</p>
-                        <p className="text-xl font-bold text-slate-900">{newValue}</p>
-                    </div>
-                    {trend && (
-                        <div className="flex items-center text-emerald-600 text-xs font-medium bg-emerald-50 px-2 py-1 rounded-full">
-                            <TrendingUp className="h-3 w-3 mr-1" />
-                            {trend}
-                        </div>
-                    )}
+                {/* Status Icons */}
+                <div className="ml-2">
+                    {isSuccess && <CheckCircle2 className="h-5 w-5 text-green-500" />}
+                    {isError && <XCircle className="h-5 w-5 text-red-500" />}
+                </div>
+            </div>
+
+            {/* Status/Result Footer */}
+            <div className="pt-2 border-t border-border/50 mt-2">
+                <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">
+                        {isSuccess ? "Update confirmed" : isError ? "Update failed" : "Waiting for confirmation..."}
+                    </span>
+                    <span className="text-muted-foreground">
+                        Source: AI Update
+                    </span>
                 </div>
 
                 {isError && result && (
-                    <p className="text-xs text-red-600 mt-3 bg-red-100/50 p-2 rounded border border-red-100">
+                    <p className="mt-2 text-xs text-red-500 bg-red-500/10 p-2 rounded border border-red-500/20">
                         {result}
                     </p>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 }

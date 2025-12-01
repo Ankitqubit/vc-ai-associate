@@ -14,6 +14,7 @@ import { FitScoreUpdateCard } from "@/components/copilot/FitScoreUpdateCard";
 import { CompanyUpdateCard } from "@/components/copilot/CompanyUpdateCard";
 import { DealCard } from "@/components/copilot/DealCard";
 import { MetricsDisplay } from "@/components/copilot/MetricsDisplay";
+import { useDealState } from "@/lib/contexts/deal-state-context";
 
 interface AIInterfaceProps {
     layout?: "floating" | "sidebar" | "center";
@@ -32,6 +33,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const [isAISpeaking, setIsAISpeaking] = useState(false);
     const [isChatActive, setIsChatActive] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const { deal } = useDealState();
 
     const { visibleMessages, appendMessage, isLoading } = useCopilotChat({
         initialMessages: [],
@@ -158,16 +160,9 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         />
                     );
                 case "show_deal_snapshot":
-                    // We need the deal object here. For now, we might not have it easily accessible 
-                    // unless we pass it or fetch it. 
-                    // Ideally, the card itself should fetch or we use context.
-                    // For now, let's skip or use a placeholder if we can't get deal data easily.
-                    // Actually, DealCard takes 'deal' prop. 
-                    // We can't easily get 'deal' here without context.
-                    // Let's assume for now we only handle the update cards which use args.
-                    return <p className="text-sm italic text-slate-500">Viewing deal snapshot...</p>;
+                    return <DealCard deal={deal} />;
                 case "show_metrics":
-                    return <p className="text-sm italic text-slate-500">Viewing metrics...</p>;
+                    return <MetricsDisplay metrics={deal.metrics} />;
             }
         }
 
