@@ -2,17 +2,18 @@ import { getDealById } from "@/lib/data/mock-db";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
-    Building, MapPin, Globe, Users, FileText, Activity,
-    ArrowLeft, ArrowRight, MoreHorizontal, MessageSquare, Sparkles,
+    Building, MapPin, Globe, Users,
+    ArrowLeft, Sparkles,
     TrendingUp, Calendar
 } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AIInterface } from "@/components/layout/ai-interface";
+import { DealContext } from "@/components/features/deal-context";
 
 interface PageProps {
     params: Promise<{
@@ -30,6 +31,7 @@ export default async function DealPage({ params }: PageProps) {
 
     return (
         <div className="h-screen bg-[#F8FAFC] flex font-sans overflow-hidden">
+            <DealContext deal={deal} />
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0">
