@@ -9,8 +9,8 @@ interface CompanyUpdateCardProps {
 }
 
 export function CompanyUpdateCard({ companyName, teamSize, status, result }: CompanyUpdateCardProps) {
-    // If we have a result but status is still inProgress (sometimes happens with optimistic updates), treat as complete
-    const displayStatus = (status === 'inProgress' && result) ? 'complete' : status;
+    // Normalize status: treat anything that's not explicitly "inProgress" or "error" as complete
+    const displayStatus = status === 'inProgress' ? 'inProgress' : status === 'error' ? 'error' : 'complete';
 
     return (
         <div className={`p-4 rounded-lg border ${displayStatus === 'error' ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'} shadow-sm`}>

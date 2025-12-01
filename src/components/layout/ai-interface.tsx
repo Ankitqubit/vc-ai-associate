@@ -304,10 +304,10 @@ export function AIInterface({ layout = "floating", className }: AIInterfaceProps
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 overflow-hidden relative group flex flex-col min-h-0">
+            <div className="flex-1 overflow-hidden relative group flex flex-col">
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-indigo-50/40 via-transparent to-transparent opacity-50 pointer-events-none" />
 
-                <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+                <ScrollArea className="h-full p-4" ref={scrollRef}>
                     <div className="space-y-6 pb-4">
                         {visibleMessages.map((msg, index) => {
                             const content = renderMessageContent(msg);
