@@ -87,7 +87,10 @@ export default async function DealPage({ params }: PageProps) {
                 </div>
 
                 {/* AI Interface - Sidebar Mode */}
-                <AIInterface layout="sidebar" />
+                <AIInterface
+                    layout="sidebar"
+                    className="relative h-screen border-l border-slate-200 shadow-none z-0 w-[400px] flex-shrink-0"
+                />
 
                 <DebugPanel />
 

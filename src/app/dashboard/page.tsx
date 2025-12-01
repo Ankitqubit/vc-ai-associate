@@ -103,8 +103,8 @@ export default function DashboardPage() {
                     </div>
                 </div>
 
-                {/* AI Interface - Floating Mode */}
-                <AIInterface layout="floating" />
+                {/* AI Interface - Center Mode */}
+                <AIInterface layout="center" className="mt-8" />
 
             </main>
         </div>

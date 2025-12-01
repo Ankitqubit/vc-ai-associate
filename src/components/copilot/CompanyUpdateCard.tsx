@@ -9,18 +9,21 @@ interface CompanyUpdateCardProps {
 }
 
 export function CompanyUpdateCard({ companyName, teamSize, status, result }: CompanyUpdateCardProps) {
+    // If we have a result but status is still inProgress (sometimes happens with optimistic updates), treat as complete
+    const displayStatus = (status === 'inProgress' && result) ? 'complete' : status;
+
     return (
-        <div className={`p-4 rounded-lg border ${status === 'error' ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'} shadow-sm`}>
+        <div className={`p-4 rounded-lg border ${displayStatus === 'error' ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'} shadow-sm`}>
             <div className="flex items-center gap-2 mb-2">
-                {status === 'complete' ? (
+                {displayStatus === 'complete' ? (
                     <CheckCircle2 className="w-5 h-5 text-green-500" />
-                ) : status === 'error' ? (
+                ) : displayStatus === 'error' ? (
                     <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center text-white text-xs">!</div>
                 ) : (
                     <div className="w-5 h-5 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
                 )}
-                <span className={`font-medium ${status === 'error' ? 'text-red-700' : 'text-gray-900'}`}>
-                    {status === 'inProgress' ? 'Updating Company Info...' : status === 'error' ? 'Failed to Update' : 'Company Info Updated'}
+                <span className={`font-medium ${displayStatus === 'error' ? 'text-red-700' : 'text-gray-900'}`}>
+                    {displayStatus === 'inProgress' ? 'Updating Company Info...' : displayStatus === 'error' ? 'Failed to Update' : 'Company Info Updated'}
                 </span>
             </div>
 
