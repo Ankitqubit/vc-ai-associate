@@ -18,9 +18,10 @@ import { MetricsDisplay } from "@/components/copilot/MetricsDisplay";
 interface AIInterfaceProps {
     layout?: "floating" | "sidebar" | "center";
     className?: string;
+    onChatStateChange?: (isActive: boolean) => void;
 }
 
-export function AIInterface({ layout = "floating", className }: AIInterfaceProps) {
+export function AIInterface({ layout = "floating", className, onChatStateChange }: AIInterfaceProps) {
     const [isOpen, setIsOpen] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const [inputValue, setInputValue] = useState("");
@@ -29,6 +30,7 @@ export function AIInterface({ layout = "floating", className }: AIInterfaceProps
     const [isVoiceMode, setIsVoiceMode] = useState(false);
     const [isVoiceListening, setIsVoiceListening] = useState(false);
     const [isAISpeaking, setIsAISpeaking] = useState(false);
+    const [isChatActive, setIsChatActive] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const { visibleMessages, appendMessage, isLoading } = useCopilotChat({
@@ -40,6 +42,13 @@ export function AIInterface({ layout = "floating", className }: AIInterfaceProps
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
     }, [visibleMessages]);
+
+    // Notify parent component when chat becomes active/inactive
+    useEffect(() => {
+        if (onChatStateChange) {
+            onChatStateChange(isChatActive || visibleMessages.length > 0);
+        }
+    }, [isChatActive, visibleMessages, onChatStateChange]);
 
     // Simulate voice activity based on loading state
     useEffect(() => {
@@ -176,62 +185,110 @@ export function AIInterface({ layout = "floating", className }: AIInterfaceProps
     };
 
     if (layout === "center") {
+        const hasChatHistory = visibleMessages.length > 0;
+
         return (
-            <div className={cn("w-full max-w-2xl mx-auto", className)}>
-                <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all p-2">
-                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1">
-                        <Paperclip className="h-5 w-5" />
-                    </Button>
-                    <input
-                        type="text"
-                        value={inputValue}
-                        onChange={(e) => setInputValue(e.target.value)}
-                        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                        placeholder="Ask anything about your deals..."
-                        className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 placeholder:text-slate-400 py-3 px-2"
-                        disabled={isLoading || isDictating}
-                    />
-                    <div className="flex items-center pr-1 space-x-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className={cn(
-                                "text-slate-400 hover:text-indigo-600 transition-colors",
-                                isDictating && "text-red-500 bg-red-50 animate-pulse"
-                            )}
-                            onClick={handleDictate}
-                        >
-                            <Mic className="h-5 w-5" />
-                        </Button>
-                        <Button
-                            size="icon"
-                            onClick={handleSubmit}
-                            disabled={isLoading || isDictating || !inputValue.trim()}
-                            className={cn(
-                                "h-10 w-10 rounded-xl transition-all shadow-sm",
-                                inputValue.trim() ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "bg-slate-100 text-slate-300"
-                            )}
-                        >
-                            {isLoading ? (
-                                <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <ArrowUp className="h-5 w-5" />
-                            )}
-                        </Button>
+            <div className={cn("flex flex-col h-full max-w-4xl mx-auto px-6", className)}>
+                {/* Chat Messages Area - Flex-1 with scroll */}
+                <div className="flex-1 overflow-y-auto py-6">
+                    <div className="space-y-4">
+                        {visibleMessages.map((msg, index) => {
+                            const content = renderMessageContent(msg);
+                            if (!content) return null;
+
+                            return (
+                                <div
+                                    key={msg.id || index}
+                                    className={cn(
+                                        "flex w-full animate-in slide-in-from-bottom-2 duration-300",
+                                        isUserMessage(msg) ? "justify-end" : "justify-start"
+                                    )}
+                                >
+                                    <div className={cn(
+                                        "max-w-[75%] rounded-2xl px-5 py-3.5 text-sm shadow-sm relative",
+                                        isUserMessage(msg)
+                                            ? "bg-indigo-600 text-white rounded-br-md"
+                                            : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
+                                    )}>
+                                        {content}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                        {isLoading && (
+                            <div className="flex justify-start animate-in fade-in duration-300">
+                                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-md px-5 py-3.5 shadow-md flex items-center space-x-1.5">
+                                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
-                {/* Quick Actions */}
-                <div className="flex justify-center gap-3 mt-6">
-                    {["Summarize recent deals", "Draft an investment memo", "Check market trends"].map((action) => (
-                        <button
-                            key={action}
-                            onClick={() => setInputValue(action)}
-                            className="text-sm text-slate-500 bg-white/50 hover:bg-white hover:text-indigo-600 px-4 py-2 rounded-full border border-slate-200/50 hover:border-indigo-100 transition-all shadow-sm"
-                        >
-                            {action}
-                        </button>
-                    ))}
+                {/* Footer - Fixed at bottom with suggestions + input */}
+                <div className="flex-shrink-0 pb-6">
+                    {/* Quick Action Suggestions - Hidden when chat is active */}
+                    <div className={cn(
+                        "flex justify-center gap-3 transition-all duration-500 ease-in-out",
+                        hasChatHistory ? "mb-0 h-0 opacity-0 overflow-hidden" : "mb-4 opacity-100"
+                    )}>
+                        {["Summarize recent deals", "Draft an investment memo", "Check market trends"].map((action) => (
+                            <button
+                                key={action}
+                                onClick={() => setInputValue(action)}
+                                className="text-sm text-slate-500 bg-white/50 hover:bg-white hover:text-indigo-600 px-4 py-2 rounded-full border border-slate-200/50 hover:border-indigo-100 transition-all shadow-sm"
+                            >
+                                {action}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Input Bar - Always visible at bottom */}
+                    <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all p-2">
+                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1">
+                            <Paperclip className="h-5 w-5" />
+                        </Button>
+                        <input
+                            type="text"
+                            value={inputValue}
+                            onChange={(e) => setInputValue(e.target.value)}
+                            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                            onFocus={() => setIsChatActive(true)}
+                            placeholder="Ask anything about your deals..."
+                            className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 placeholder:text-slate-400 py-3 px-2"
+                            disabled={isLoading || isDictating}
+                        />
+                        <div className="flex items-center pr-1 space-x-2">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className={cn(
+                                    "text-slate-400 hover:text-indigo-600 transition-colors",
+                                    isDictating && "text-red-500 bg-red-50 animate-pulse"
+                                )}
+                                onClick={handleDictate}
+                            >
+                                <Mic className="h-5 w-5" />
+                            </Button>
+                            <Button
+                                size="icon"
+                                onClick={handleSubmit}
+                                disabled={isLoading || isDictating || !inputValue.trim()}
+                                className={cn(
+                                    "h-10 w-10 rounded-xl transition-all shadow-sm",
+                                    inputValue.trim() ? "bg-indigo-600 hover:bg-indigo-700 text-white" : "bg-slate-100 text-slate-300"
+                                )}
+                            >
+                                {isLoading ? (
+                                    <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <ArrowUp className="h-5 w-5" />
+                                )}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
