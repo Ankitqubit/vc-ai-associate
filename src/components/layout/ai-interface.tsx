@@ -191,6 +191,8 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             const content = renderMessageContent(msg);
                             if (!content) return null;
 
+                            const isUI = !(msg as any).content && ((msg as any).ui || (msg as any).type === "ActionExecutionMessage" || (msg as any).name);
+
                             return (
                                 <div
                                     key={msg.id || index}
@@ -199,14 +201,20 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                         isUserMessage(msg) ? "justify-end" : "justify-start"
                                     )}
                                 >
-                                    <div className={cn(
-                                        "max-w-[75%] rounded-2xl px-5 py-3.5 text-sm shadow-sm relative",
-                                        isUserMessage(msg)
-                                            ? "bg-indigo-600 text-white rounded-br-md"
-                                            : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
-                                    )}>
-                                        {content}
-                                    </div>
+                                    {isUI ? (
+                                        <div className="w-full max-w-md">
+                                            {content}
+                                        </div>
+                                    ) : (
+                                        <div className={cn(
+                                            "max-w-[75%] rounded-2xl px-5 py-3.5 text-sm shadow-sm relative",
+                                            isUserMessage(msg)
+                                                ? "bg-indigo-600 text-white rounded-br-md"
+                                                : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
+                                        )}>
+                                            {content}
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
@@ -365,6 +373,8 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             const content = renderMessageContent(msg);
                             if (!content) return null;
 
+                            const isUI = !(msg as any).content && ((msg as any).ui || (msg as any).type === "ActionExecutionMessage" || (msg as any).name);
+
                             return (
                                 <div
                                     key={msg.id || index}
@@ -373,21 +383,27 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                         isUserMessage(msg) ? "justify-end" : "justify-start"
                                     )}
                                 >
-                                    <div className={cn(
-                                        "max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm relative group/msg transition-all hover:shadow-md",
-                                        isUserMessage(msg)
-                                            ? "bg-indigo-600 text-white rounded-br-none"
-                                            : "bg-white border border-slate-100 text-slate-700 rounded-bl-none"
-                                    )}>
-                                        {content}
-
-                                        <span className={cn(
-                                            "text-[10px] absolute -bottom-5 opacity-0 group-hover/msg:opacity-100 transition-opacity",
-                                            isUserMessage(msg) ? "right-0 text-slate-400" : "left-0 text-slate-400"
+                                    {isUI ? (
+                                        <div className="w-full max-w-[85%]">
+                                            {content}
+                                        </div>
+                                    ) : (
+                                        <div className={cn(
+                                            "max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm relative group/msg transition-all hover:shadow-md",
+                                            isUserMessage(msg)
+                                                ? "bg-indigo-600 text-white rounded-br-none"
+                                                : "bg-white border border-slate-100 text-slate-700 rounded-bl-none"
                                         )}>
-                                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                        </span>
-                                    </div>
+                                            {content}
+
+                                            <span className={cn(
+                                                "text-[10px] absolute -bottom-5 opacity-0 group-hover/msg:opacity-100 transition-opacity",
+                                                isUserMessage(msg) ? "right-0 text-slate-400" : "left-0 text-slate-400"
+                                            )}>
+                                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
                             );
                         })}
