@@ -113,11 +113,9 @@ export function MemoCanvas({ isOpen, onClose }: MemoCanvasProps) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 overflow-y-auto bg-slate-50 p-8">
+                <div className="flex-1 overflow-y-auto bg-white">
                     {memo ? (
-                        <div className="max-w-4xl mx-auto">
-                            <MemoEditor />
-                        </div>
+                        <MemoEditor />
                     ) : isGenerating ? (
                         <div className="flex items-center justify-center h-full">
                             <div className="text-center max-w-md">
