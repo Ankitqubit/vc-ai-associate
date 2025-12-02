@@ -99,5 +99,22 @@ export function GlobalActions() {
         },
     });
 
+    // Compare deals action
+    useCopilotAction({
+        name: "compare_deals",
+        description: "Compare multiple deals side-by-side showing their fit scores, metrics, and key details. Use this when the user asks to compare deals or wants to see which deal is better.",
+        parameters: [
+            {
+                name: "dealIds",
+                type: "string[]",
+                description: "Array of deal IDs to compare (e.g., ['deal-1', 'deal-3']). Can also accept company names which will be mapped to IDs.",
+                required: true,
+            },
+        ],
+        handler: async ({ dealIds }: { dealIds: string[] }) => {
+            return `Comparing ${dealIds.length} deals. See the comparison above.`;
+        },
+    });
+
     return null;
 }

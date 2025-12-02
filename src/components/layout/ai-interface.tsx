@@ -14,7 +14,26 @@ import { FitScoreUpdateCard } from "@/components/copilot/FitScoreUpdateCard";
 import { CompanyUpdateCard } from "@/components/copilot/CompanyUpdateCard";
 import { DealCard } from "@/components/copilot/DealCard";
 import { MetricsDisplay } from "@/components/copilot/MetricsDisplay";
+import { DealComparisonCard } from "@/components/copilot/DealComparisonCard";
 import { useSafeDealState } from "@/lib/contexts/deal-state-context";
+import { getDealById } from "@/lib/data/mock-db";
+
+// Wrapper component to fetch deals for comparison
+function DealComparisonWrapper({ dealIds }: { dealIds: string[] }) {
+    const [deals, setDeals] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDeals = () => {
+            const fetchedDeals = dealIds.map(id => getDealById(id)).filter(Boolean);
+            setDeals(fetchedDeals);
+            setLoading(false);
+        };
+        fetchDeals();
+    }, [dealIds]);
+
+    return <DealComparisonCard deals={deals} loading={loading} />;
+}
 
 interface AIInterfaceProps {
     layout?: "floating" | "sidebar" | "center";
@@ -164,6 +183,12 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     return <DealCard deal={deal} />;
                 case "show_metrics":
                     return deal ? <MetricsDisplay metrics={deal.metrics} /> : null;
+                case "compare_deals":
+                    // Fetch deals by IDs and render comparison
+                    const { dealIds } = args;
+                    if (!dealIds || dealIds.length === 0) return null;
+
+                    return <DealComparisonWrapper dealIds={dealIds} />;
             }
         }
 
