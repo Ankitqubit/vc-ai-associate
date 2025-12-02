@@ -84,3 +84,10 @@ export const getDealById = (id: string): Deal | undefined => {
 export const getRecentDeals = (): Deal[] => {
     return mockDeals;
 };
+
+export const getAllDeals = (): Promise<Deal[]> => {
+    // Simulate async fetch
+    return new Promise((resolve) => {
+        setTimeout(() => resolve(mockDeals), 500);
+    });
+};

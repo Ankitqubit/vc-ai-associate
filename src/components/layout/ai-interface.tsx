@@ -14,7 +14,7 @@ import { FitScoreUpdateCard } from "@/components/copilot/FitScoreUpdateCard";
 import { CompanyUpdateCard } from "@/components/copilot/CompanyUpdateCard";
 import { DealCard } from "@/components/copilot/DealCard";
 import { MetricsDisplay } from "@/components/copilot/MetricsDisplay";
-import { useDealState } from "@/lib/contexts/deal-state-context";
+import { useSafeDealState } from "@/lib/contexts/deal-state-context";
 
 interface AIInterfaceProps {
     layout?: "floating" | "sidebar" | "center";
@@ -33,7 +33,8 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const [isAISpeaking, setIsAISpeaking] = useState(false);
     const [isChatActive, setIsChatActive] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { deal } = useDealState();
+    const dealState = useSafeDealState();
+    const deal = dealState?.deal;
 
     const { visibleMessages, appendMessage, isLoading } = useCopilotChat({
         initialMessages: [],

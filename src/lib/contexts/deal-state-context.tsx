@@ -156,3 +156,7 @@ export function useDealState() {
     }
     return context;
 }
+
+export function useSafeDealState() {
+    return useContext(DealStateContext);
+}
