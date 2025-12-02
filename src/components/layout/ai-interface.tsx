@@ -200,12 +200,13 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         />
                     );
                 case "show_deal_snapshot":
+                    if (!deal) return null;
                     return <DealCard deal={deal} />;
                 case "show_metrics":
                     return deal ? <MetricsDisplay metrics={deal.metrics} /> : null;
                 case "compare_deals":
                     // Fetch deals by IDs and render comparison
-                    const { dealIds } = args;
+                    const dealIds = args?.dealIds || result?.dealIds;
                     if (!dealIds || dealIds.length === 0) return null;
 
                     return <DealComparisonWrapper dealIds={dealIds} />;
@@ -219,7 +220,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
                     return <DealCard deal={requestedDeal} />;
                 case "show_call_summary":
-                    return <CallSummaryCard summary={result.summary} />;
+                    return <CallSummaryCard summary={result.summary} dealId={result.dealId} />;
             }
         }
 

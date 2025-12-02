@@ -353,6 +353,7 @@ export function GlobalActions() {
 
                 return {
                     summary: data.summary,
+                    dealId,
                     action: 'show_call_summary'
                 };
             } catch (error) {

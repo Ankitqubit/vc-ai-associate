@@ -2,7 +2,8 @@
 
 import { Deal } from "@/lib/types";
 import { cn } from "@/lib/utils";
-import { TrendingUp, TrendingDown, Building2, MapPin, Users } from "lucide-react";
+import { TrendingUp, TrendingDown, Building2, MapPin, Users, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 interface DealCardProps {
     deal: Deal;
@@ -40,7 +41,7 @@ export function DealCard({ deal, loading }: DealCardProps) {
     }
 
     return (
-        <div className="group rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 overflow-hidden">
+        <Link href={`/deals/${deal.id}`} className="block group rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 overflow-hidden cursor-pointer">
             {/* Header with gradient */}
             <div className={cn(
                 "bg-gradient-to-r p-6 border-b border-border/50",
@@ -50,7 +51,8 @@ export function DealCard({ deal, loading }: DealCardProps) {
                     <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                             <Building2 className="h-5 w-5 text-primary" />
-                            <h3 className="text-xl font-semibold">{deal.company.name}</h3>
+                            <h3 className="text-xl font-semibold group-hover:text-primary transition-colors">{deal.company.name}</h3>
+                            <ArrowRight className="h-4 w-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300 text-primary" />
                         </div>
                         <p className="text-sm text-muted-foreground mb-3">
                             {deal.company.description}
@@ -115,6 +117,6 @@ export function DealCard({ deal, loading }: DealCardProps) {
                     </div>
                 </div>
             </div>
-        </div>
+        </Link>
     );
 }

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, CheckCircle2, XCircle, TrendingUp, ArrowRight } from "lucide-react";
@@ -9,19 +10,21 @@ interface MetricUpdateCardProps {
     trend?: string;
     status: "inProgress" | "complete" | "error";
     result?: string;
+    dealId?: string;
 }
 
-export function MetricUpdateCard({ metricName, newValue, trend, status, result }: MetricUpdateCardProps) {
+export function MetricUpdateCard({ metricName, newValue, trend, status, result, dealId }: MetricUpdateCardProps) {
     const isError = status === "error" || (status === "complete" && result?.startsWith("Error"));
     const isSuccess = status === "complete" && !isError;
 
-    return (
+    const cardContent = (
         <div className={cn(
             "w-full max-w-sm transition-all duration-300",
             "rounded-lg border border-border/50",
             "bg-gradient-to-br from-background/50 to-muted/30",
             "p-4",
-            isError ? "border-red-200/50" : "hover:border-primary/50"
+            isError ? "border-red-200/50" : "hover:border-primary/50",
+            dealId && "cursor-pointer group"
         )}>
             {/* Header */}
             <div className="flex items-start justify-between mb-2">
@@ -35,6 +38,9 @@ export function MetricUpdateCard({ metricName, newValue, trend, status, result }
                                 <Loader2 className="h-3 w-3 mr-1 animate-spin" />
                                 Updating...
                             </span>
+                        )}
+                        {dealId && (
+                            <ArrowRight className="h-3 w-3 text-primary opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
                         )}
                     </div>
 
@@ -81,4 +87,10 @@ export function MetricUpdateCard({ metricName, newValue, trend, status, result }
             </div>
         </div>
     );
+
+    if (dealId) {
+        return <Link href={`/deals/${dealId}`} className="block">{cardContent}</Link>;
+    }
+
+    return cardContent;
 }

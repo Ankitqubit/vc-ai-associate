@@ -1,19 +1,21 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, CheckCircle2, XCircle, StickyNote } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, StickyNote, ArrowRight } from "lucide-react";
 
 interface NoteAddCardProps {
     note: string;
     category?: string;
     status: "inProgress" | "complete" | "error";
     result?: string;
+    dealId?: string;
 }
 
-export function NoteAddCard({ note, category, status, result }: NoteAddCardProps) {
+export function NoteAddCard({ note, category, status, result, dealId }: NoteAddCardProps) {
     const isError = status === "error" || (status === "complete" && result?.startsWith("Error"));
 
-    return (
-        <Card className={`w-full max-w-sm border-2 ${isError ? "border-red-100 bg-red-50/50" : "border-amber-50 bg-amber-50/30"}`}>
+    const cardContent = (
+        <Card className={`w-full max-w-sm border-2 transition-all duration-300 ${isError ? "border-red-100 bg-red-50/50" : "border-amber-50 bg-amber-50/30"} ${dealId ? "hover:border-amber-200 cursor-pointer group" : ""}`}>
             <CardContent className="p-4">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
@@ -24,6 +26,9 @@ export function NoteAddCard({ note, category, status, result }: NoteAddCardProps
                         <span className="text-sm font-medium text-slate-700">
                             {status === "inProgress" ? "Adding Note..." : isError ? "Failed to Add Note" : "Note Added"}
                         </span>
+                        {dealId && (
+                            <ArrowRight className="h-3 w-3 text-amber-500 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                        )}
                     </div>
                     {category && (
                         <Badge variant="outline" className="bg-white text-slate-500 border-slate-200">
@@ -47,4 +52,10 @@ export function NoteAddCard({ note, category, status, result }: NoteAddCardProps
             </CardContent>
         </Card>
     );
+
+    if (dealId) {
+        return <Link href={`/deals/${dealId}`} className="block">{cardContent}</Link>;
+    }
+
+    return cardContent;
 }

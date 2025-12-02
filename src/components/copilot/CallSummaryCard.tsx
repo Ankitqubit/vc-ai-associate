@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronDown, ChevronUp, Edit2, Check, RefreshCw, ThumbsUp, ThumbsDown } from "lucide-react";
+import { ChevronDown, ChevronUp, Edit2, Check, RefreshCw, ThumbsUp, ThumbsDown, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface CallSummary {
@@ -22,11 +23,12 @@ export interface CallSummary {
 
 interface CallSummaryCardProps {
     summary: CallSummary;
+    dealId?: string;
     onApprove?: () => void;
     onEdit?: () => void;
 }
 
-export function CallSummaryCard({ summary, onApprove, onEdit }: CallSummaryCardProps) {
+export function CallSummaryCard({ summary, dealId, onApprove, onEdit }: CallSummaryCardProps) {
     const [isExpanded, setIsExpanded] = useState(true);
 
     return (
@@ -35,7 +37,14 @@ export function CallSummaryCard({ summary, onApprove, onEdit }: CallSummaryCardP
                 <div className="flex items-start justify-between">
                     <div className="space-y-1">
                         <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            📞 Call Summary
+                            {dealId ? (
+                                <Link href={`/deals/${dealId}`} className="hover:text-primary transition-colors flex items-center gap-2 group">
+                                    📞 Call Summary
+                                    <ArrowRight className="h-3 w-3 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
+                                </Link>
+                            ) : (
+                                <span>📞 Call Summary</span>
+                            )}
                             <span className="text-xs font-normal text-muted-foreground">
                                 • {summary.metadata.date}
                             </span>

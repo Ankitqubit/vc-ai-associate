@@ -133,6 +133,7 @@ export function DealContext() {
                     trend={args.trend}
                     status={status}
                     result={result}
+                    dealId={deal.id}
                 />
             );
         },
@@ -205,6 +206,7 @@ export function DealContext() {
                     reason={args.reason}
                     status={status}
                     result={result}
+                    dealId={deal.id}
                 />
             );
         },
@@ -272,6 +274,7 @@ export function DealContext() {
                     category={args.category}
                     status={status}
                     result={result}
+                    dealId={deal.id}
                 />
             );
         },
