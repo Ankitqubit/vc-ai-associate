@@ -24,14 +24,17 @@ export function DealCard({ deal, loading }: DealCardProps) {
 
     if (loading) {
         return (
-            <div className="animate-pulse rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 p-6">
-                <div className="h-6 bg-muted rounded w-1/3 mb-4"></div>
-                <div className="h-4 bg-muted rounded w-2/3 mb-6"></div>
-                <div className="grid grid-cols-3 gap-4">
-                    <div className="h-12 bg-muted rounded"></div>
-                    <div className="h-12 bg-muted rounded"></div>
-                    <div className="h-12 bg-muted rounded"></div>
-                </div>
+            <div className="rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm p-6 animate-pulse">
+                <div className="h-6 bg-muted rounded w-1/2 mb-4"></div>
+                <div className="h-4 bg-muted rounded w-3/4"></div>
+            </div>
+        );
+    }
+
+    if (!deal) {
+        return (
+            <div className="rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm p-6">
+                <p className="text-sm text-muted-foreground">No deal data available.</p>
             </div>
         );
     }

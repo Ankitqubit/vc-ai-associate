@@ -163,7 +163,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                 case "show_deal_snapshot":
                     return <DealCard deal={deal} />;
                 case "show_metrics":
-                    return <MetricsDisplay metrics={deal.metrics} />;
+                    return deal ? <MetricsDisplay metrics={deal.metrics} /> : null;
             }
         }
 

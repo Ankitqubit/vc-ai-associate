@@ -91,3 +91,53 @@ export const getAllDeals = (): Promise<Deal[]> => {
         setTimeout(() => resolve(mockDeals), 500);
     });
 };
+
+// Mutable update functions for prototyping
+export const updateDealStage = (dealId: string, newStage: string): boolean => {
+    console.log(`[mock-db] updateDealStage called: dealId=${dealId}, newStage=${newStage}`);
+    console.log(`[mock-db] Current deals:`, mockDeals.map(d => ({ id: d.id, name: d.company.name, stage: d.stage })));
+
+    const deal = mockDeals.find(d => d.id === dealId);
+    if (!deal) {
+        console.error(`[mock-db] Deal not found: ${dealId}`);
+        return false;
+    }
+
+    console.log(`[mock-db] Found deal: ${deal.company.name}, current stage: ${deal.stage}`);
+    deal.stage = newStage as any; // Type assertion for prototype
+    deal.lastActivity = new Date().toISOString();
+    console.log(`[mock-db] Updated deal stage to: ${deal.stage}`);
+    return true;
+};
+
+export const updateDealMetric = (dealId: string, metricName: string, newValue: string, trend?: string): boolean => {
+    const deal = mockDeals.find(d => d.id === dealId);
+    if (!deal) return false;
+
+    const metric = deal.metrics.find(m => m.name === metricName);
+    if (!metric) return false;
+
+    metric.value = newValue;
+    if (trend) metric.trend = trend;
+    deal.lastActivity = new Date().toISOString();
+    return true;
+};
+
+export const updateDealFitScore = (dealId: string, newScore: number, rationale: string): boolean => {
+    const deal = mockDeals.find(d => d.id === dealId);
+    if (!deal) return false;
+
+    deal.fitScore.score = newScore;
+    deal.fitScore.rationale = rationale;
+    deal.lastActivity = new Date().toISOString();
+    return true;
+};
+
+export const updateDealCompany = (dealId: string, updates: Partial<Deal['company']>): boolean => {
+    const deal = mockDeals.find(d => d.id === dealId);
+    if (!deal) return false;
+
+    deal.company = { ...deal.company, ...updates };
+    deal.lastActivity = new Date().toISOString();
+    return true;
+};

@@ -24,21 +24,39 @@ export function PipelineBoard() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeId, setActiveId] = useState<string | null>(null);
 
+    const fetchDeals = async () => {
+        setIsLoading(true);
+        try {
+            const data = await getAllDeals();
+            setDeals(data);
+            console.log('[PipelineBoard] Fetched deals:', data.map(d => `${d.company.name}: ${d.stage}`));
+        } catch (error) {
+            console.error("Failed to fetch deals", error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     useEffect(() => {
-        // Simulate fetch
-        const fetchDeals = async () => {
-            setIsLoading(true);
-            try {
-                // In a real app, this would be an API call
-                const data = await getAllDeals();
-                setDeals(data);
-            } catch (error) {
-                console.error("Failed to fetch deals", error);
-            } finally {
-                setIsLoading(false);
+        fetchDeals();
+    }, []);
+
+    // Re-fetch when page becomes visible (e.g., after navigation)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden) {
+                console.log('[PipelineBoard] Page visible, refreshing deals');
+                fetchDeals();
             }
         };
-        fetchDeals();
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('focus', fetchDeals);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('focus', fetchDeals);
+        };
     }, []);
 
     const sensors = useSensors(

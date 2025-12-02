@@ -35,5 +35,52 @@ export function GlobalActions() {
         },
     });
 
+    // Global action to update any deal's stage (for pipeline view)
+    useCopilotAction({
+        name: "update_any_deal_stage",
+        description: "Update the stage of any deal by its ID or company name. Use this when on the pipeline view or when you need to update a deal that's not currently being viewed. Valid stages: 'Inbound', 'First Call', 'Deep Dive', 'IC', 'Term Sheet', 'Closed Won', 'Passed'.",
+        parameters: [
+            {
+                name: "dealId",
+                type: "string",
+                description: "The ID of the deal to update (e.g., 'deal-1'). If the user mentions a company name, use the corresponding deal ID.",
+                required: true,
+            },
+            {
+                name: "newStage",
+                type: "string",
+                description: "The new stage for the deal. Must be one of: 'Inbound', 'First Call', 'Deep Dive', 'IC', 'Term Sheet', 'Closed Won', 'Passed'.",
+                required: true,
+            },
+            {
+                name: "reason",
+                type: "string",
+                description: "Optional reason for the stage change",
+                required: false,
+            },
+        ],
+        handler: async ({ dealId, newStage, reason }: { dealId: string; newStage: string; reason?: string }) => {
+            try {
+                const res = await fetch('/api/deals/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_stage',
+                        dealId,
+                        newStage,
+                        reason
+                    }),
+                });
+
+                if (!res.ok) throw new Error('Failed to update deal');
+
+                return `Successfully moved deal ${dealId} to ${newStage}. You can refresh the pipeline view to see the change.`;
+            } catch (error) {
+                console.error('Failed to update deal stage:', error);
+                return `Error: Failed to move deal to ${newStage}.`;
+            }
+        },
+    });
+
     return null;
 }
