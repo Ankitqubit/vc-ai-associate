@@ -168,6 +168,152 @@ export function GlobalActions() {
         },
     });
 
+    // Global action to update any deal's metric
+    useCopilotAction({
+        name: "update_any_deal_metric",
+        description: "Update a metric for any deal by its ID or company name. Use this when not viewing a specific deal page.",
+        parameters: [
+            {
+                name: "dealId",
+                type: "string",
+                description: "The ID of the deal (e.g., 'deal-1') or company name.",
+                required: true,
+            },
+            {
+                name: "metricName",
+                type: "string",
+                description: "The name of the metric to update (e.g., 'MRR', 'CAC', 'Burn')",
+                required: true,
+            },
+            {
+                name: "newValue",
+                type: "string",
+                description: "The new value for the metric (e.g., '$880K')",
+                required: true,
+            },
+            {
+                name: "trend",
+                type: "string",
+                description: "Optional trend indicator (e.g., '+15% MoM')",
+                required: false,
+            },
+        ],
+        handler: async ({ dealId, metricName, newValue, trend }: { dealId: string; metricName: string; newValue: string; trend?: string }) => {
+            // Map company names to deal IDs
+            const companyMap: Record<string, string> = {
+                'acme corp': 'deal-1',
+                'acme': 'deal-1',
+                'dataflow ai': 'deal-2',
+                'dataflow': 'deal-2',
+                'healthtech solutions': 'deal-3',
+                'healthtech': 'deal-3',
+                'cloudscale': 'deal-4',
+                'edulearn': 'deal-5',
+                'finsync': 'deal-6',
+            };
+
+            const normalizedInput = dealId.toLowerCase().trim();
+            const actualDealId = companyMap[normalizedInput] || dealId;
+
+            try {
+                const res = await fetch('/api/deals/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update_metric',
+                        dealId: actualDealId,
+                        metricName,
+                        newValue,
+                        trend
+                    }),
+                });
+
+                if (!res.ok) throw new Error('Failed to update metric');
+
+                return {
+                    metricName,
+                    newValue,
+                    trend,
+                    dealId: actualDealId,
+                    status: 'success',
+                    message: `Successfully updated ${metricName} to ${newValue} for deal ${actualDealId}.`
+                };
+            } catch (error) {
+                console.error('Failed to update metric:', error);
+                return `Error: Failed to update ${metricName}.`;
+            }
+        },
+    });
+
+    // Global action to add a note to any deal
+    useCopilotAction({
+        name: "add_note_to_any_deal",
+        description: "Add a note to any deal by its ID or company name.",
+        parameters: [
+            {
+                name: "dealId",
+                type: "string",
+                description: "The ID of the deal (e.g., 'deal-1') or company name.",
+                required: true,
+            },
+            {
+                name: "note",
+                type: "string",
+                description: "The content of the note to add",
+                required: true,
+            },
+            {
+                name: "category",
+                type: "string",
+                description: "Optional category for the note (e.g., 'team', 'product', 'market')",
+                required: false,
+            },
+        ],
+        handler: async ({ dealId, note, category }: { dealId: string; note: string; category?: string }) => {
+            // Map company names to deal IDs
+            const companyMap: Record<string, string> = {
+                'acme corp': 'deal-1',
+                'acme': 'deal-1',
+                'dataflow ai': 'deal-2',
+                'dataflow': 'deal-2',
+                'healthtech solutions': 'deal-3',
+                'healthtech': 'deal-3',
+                'cloudscale': 'deal-4',
+                'edulearn': 'deal-5',
+                'finsync': 'deal-6',
+            };
+
+            const normalizedInput = dealId.toLowerCase().trim();
+            const actualDealId = companyMap[normalizedInput] || dealId;
+
+            try {
+                const res = await fetch('/api/deals/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'add_note',
+                        dealId: actualDealId,
+                        note,
+                        category
+                    }),
+                });
+
+                if (!res.ok) throw new Error('Failed to add note');
+
+                return {
+                    note,
+                    category,
+                    dealId: actualDealId,
+                    status: 'success',
+                    message: `Successfully added note to deal ${actualDealId}.`
+                };
+            } catch (error) {
+                console.error('Failed to add note:', error);
+                return `Error: Failed to add note.`;
+            }
+        },
+    });
+
     // Summarize call action
     useCopilotAction({
         name: "summarize_call",

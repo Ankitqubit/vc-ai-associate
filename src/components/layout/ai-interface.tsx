@@ -144,6 +144,25 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             result={result}
                         />
                     );
+                case "update_any_deal_metric":
+                    return (
+                        <MetricUpdateCard
+                            metricName={args.metricName}
+                            newValue={args.newValue}
+                            trend={args.trend}
+                            status={status}
+                            result={result}
+                        />
+                    );
+                case "add_note_to_any_deal":
+                    return (
+                        <NoteAddCard
+                            note={args.note}
+                            category={args.category}
+                            status={status}
+                            result={result}
+                        />
+                    );
                 case "update_deal_stage":
                     return (
                         <StageUpdateCard
