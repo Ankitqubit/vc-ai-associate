@@ -9,18 +9,35 @@ export function GlobalActions() {
     // Navigation action for deal-related queries
     useCopilotAction({
         name: "navigate_to_deal",
-        description: "Navigate to a specific deal page when the user wants to view, discuss, or analyze a particular deal. Use this when the user mentions a company name or deal ID.",
+        description: "Navigate to a specific deal page when the user wants to view, discuss, or analyze a particular deal. Use this when the user mentions a company name or deal ID. Available deals: Acme Corp (deal-1), DataFlow AI (deal-2), HealthTech Solutions (deal-3), CloudScale (deal-4), EduLearn (deal-5), FinSync (deal-6).",
         parameters: [
             {
                 name: "dealId",
                 type: "string",
-                description: "The ID of the deal to navigate to (e.g., 'deal-1', 'deal-2'). If the user mentions a company name, map it to the corresponding deal ID.",
+                description: "The ID of the deal to navigate to (e.g., 'deal-1', 'deal-2', 'deal-3'). If the user mentions a company name, use the corresponding ID: Acme Corp=deal-1, DataFlow AI=deal-2, HealthTech Solutions=deal-3, CloudScale=deal-4, EduLearn=deal-5, FinSync=deal-6.",
                 required: true,
             },
         ],
         handler: async ({ dealId }: { dealId: string }) => {
-            router.push(`/deals/${dealId}`);
-            return `Navigating to ${dealId}. The conversation will continue on the deal page.`;
+            // Map company names to deal IDs (case-insensitive)
+            const companyMap: Record<string, string> = {
+                'acme corp': 'deal-1',
+                'acme': 'deal-1',
+                'dataflow ai': 'deal-2',
+                'dataflow': 'deal-2',
+                'healthtech solutions': 'deal-3',
+                'healthtech': 'deal-3',
+                'cloudscale': 'deal-4',
+                'edulearn': 'deal-5',
+                'finsync': 'deal-6',
+            };
+
+            // Check if dealId is actually a company name
+            const normalizedInput = dealId.toLowerCase().trim();
+            const actualDealId = companyMap[normalizedInput] || dealId;
+
+            router.push(`/deals/${actualDealId}`);
+            return `Navigating to ${actualDealId}. The conversation will continue on the deal page.`;
         },
     });
 
