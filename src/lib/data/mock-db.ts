@@ -1,4 +1,4 @@
-import { Deal } from '../types';
+import { Deal, MemoTemplate, InvestmentMemo } from '../types';
 
 export const mockDeals: Deal[] = [
     {
@@ -462,4 +462,141 @@ export const updateDealCompany = (dealId: string, updates: Partial<Deal['company
     deal.company = { ...deal.company, ...updates };
     deal.lastActivity = new Date().toISOString();
     return true;
+};
+
+// ============================================
+// MEMO TEMPLATES & DATA
+// ============================================
+
+export const defaultMemoTemplate: MemoTemplate = {
+    id: 'template-1',
+    name: 'Standard IC Memo',
+    description: 'Our standard investment committee memo format for Series A deals',
+    sections: [
+        {
+            type: 'executive_summary',
+            title: 'Executive Summary',
+            required: true,
+            order: 1,
+            prompt: 'Provide a 3-4 sentence overview covering: what the company does, key traction metrics, thesis fit, and investment recommendation.'
+        },
+        {
+            type: 'company_overview',
+            title: 'Company Overview',
+            required: true,
+            order: 2,
+            prompt: 'Describe the company, founding team, location, and founding date.'
+        },
+        {
+            type: 'problem_solution',
+            title: 'Problem & Solution',
+            required: true,
+            order: 3,
+            prompt: 'What problem are they solving? How does their solution work? What makes it unique?'
+        },
+        {
+            type: 'market_analysis',
+            title: 'Market Analysis',
+            required: true,
+            order: 4,
+            prompt: 'TAM/SAM/SOM estimates, market trends, growth drivers, and competitive dynamics.'
+        },
+        {
+            type: 'product',
+            title: 'Product',
+            required: true,
+            order: 5,
+            prompt: 'Describe the product, key features, technical architecture, and differentiation.'
+        },
+        {
+            type: 'traction_metrics',
+            title: 'Traction & Metrics',
+            required: true,
+            order: 6,
+            prompt: 'MRR, growth rate, customer count, retention, unit economics (CAC, LTV), and key milestones.'
+        },
+        {
+            type: 'team',
+            title: 'Team',
+            required: true,
+            order: 7,
+            prompt: 'Founder backgrounds, relevant experience, prior exits, team composition, and gaps.'
+        },
+        {
+            type: 'business_model',
+            title: 'Business Model',
+            required: true,
+            order: 8,
+            prompt: 'How do they make money? Pricing model, sales cycle, go-to-market strategy.'
+        },
+        {
+            type: 'competitive_landscape',
+            title: 'Competitive Landscape',
+            required: true,
+            order: 9,
+            prompt: 'Who are the main competitors? What is their competitive advantage and moat?'
+        },
+        {
+            type: 'thesis_fit',
+            title: 'Thesis Fit Analysis',
+            required: true,
+            order: 10,
+            prompt: 'How does this deal align with our investment thesis? Scoring breakdown and rationale.'
+        },
+        {
+            type: 'risks_concerns',
+            title: 'Risks & Concerns',
+            required: true,
+            order: 11,
+            prompt: 'What are the key risks? Market risks, execution risks, competitive risks, team risks.'
+        },
+        {
+            type: 'open_questions',
+            title: 'Open Questions',
+            required: false,
+            order: 12,
+            prompt: 'What questions remain unanswered? What additional diligence is needed?'
+        },
+        {
+            type: 'recommendation',
+            title: 'Recommendation',
+            required: true,
+            order: 13,
+            prompt: 'Should we proceed? Pass? Need more information? Why?'
+        },
+    ]
+};
+
+export const mockMemos: InvestmentMemo[] = [];
+
+// Memo helper functions
+export const getMemoByDealId = (dealId: string): InvestmentMemo | undefined => {
+    return mockMemos.find(m => m.dealId === dealId);
+};
+
+export const createMemo = (memo: InvestmentMemo): void => {
+    mockMemos.push(memo);
+};
+
+export const updateMemoSection = (memoId: string, sectionId: string, content: string): boolean => {
+    const memo = mockMemos.find(m => m.id === memoId);
+    if (!memo) return false;
+
+    const section = memo.sections.find(s => s.id === sectionId);
+    if (!section) return false;
+
+    section.content = content;
+    section.lastEditedBy = {
+        name: 'Human User',
+        isAi: false,
+        timestamp: new Date().toISOString(),
+    };
+    section.version += 1;
+
+    memo.updatedAt = new Date().toISOString();
+    return true;
+};
+
+export const getMemoTemplate = (): MemoTemplate => {
+    return defaultMemoTemplate;
 };

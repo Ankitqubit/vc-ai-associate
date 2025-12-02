@@ -82,3 +82,101 @@ export interface Deal {
   activities: Activity[];
   callSummaries?: CallSummary[];
 }
+
+// ============================================
+// MEMO TYPES
+// ============================================
+
+export type MemoSectionType =
+  | 'executive_summary'
+  | 'company_overview'
+  | 'problem_solution'
+  | 'market_analysis'
+  | 'product'
+  | 'traction_metrics'
+  | 'team'
+  | 'business_model'
+  | 'competitive_landscape'
+  | 'thesis_fit'
+  | 'risks_concerns'
+  | 'open_questions'
+  | 'recommendation';
+
+export type MemoSectionSource = 'ai' | 'human' | 'mixed';
+export type MemoStatus = 'draft' | 'review' | 'final';
+export type ConfidenceLevel = 'high' | 'medium' | 'low';
+
+export interface Citation {
+  id: string;
+  type: 'deck' | 'transcript' | 'research' | 'note' | 'external';
+  source: string; // "Acme Deck, Slide 8" or "Call with CEO, 23:45"
+  content: string; // Preview text
+  url?: string; // Link to view full source
+  timestamp?: string; // For transcripts
+  slideNumber?: number; // For decks
+  confidence: ConfidenceLevel;
+}
+
+export interface MemoSection {
+  id: string;
+  type: MemoSectionType;
+  title: string;
+  content: string; // Rich text content
+  source: MemoSectionSource; // Who created this section
+  citations: Citation[]; // References supporting this section
+  confidence?: ConfidenceLevel; // AI confidence if applicable
+  lastEditedBy: {
+    name: string;
+    isAi: boolean;
+    timestamp: string;
+  };
+  version: number; // For tracking changes
+}
+
+export interface MemoVersion {
+  id: string;
+  memoId: string;
+  versionNumber: number;
+  sections: MemoSection[];
+  createdAt: string;
+  createdBy: {
+    name: string;
+    isAi: boolean;
+  };
+  changeDescription?: string; // "Regenerated risks section"
+}
+
+export interface MemoTemplate {
+  id: string;
+  name: string;
+  description: string;
+  sections: Array<{
+    type: MemoSectionType;
+    title: string;
+    required: boolean;
+    order: number;
+    prompt?: string; // Guidance for AI generation
+  }>;
+}
+
+export interface InvestmentMemo {
+  id: string;
+  dealId: string;
+  title: string; // e.g., "Acme Corp - Series A Investment Memo"
+  status: MemoStatus;
+  sections: MemoSection[];
+  template: MemoTemplate;
+  versions: MemoVersion[]; // Version history
+  currentVersion: number;
+  createdAt: string;
+  updatedAt: string;
+  createdBy: {
+    name: string;
+    isAi: boolean;
+  };
+  metadata: {
+    completeness: number; // 0-100 percentage
+    wordCount: number;
+    estimatedReadTime: number; // minutes
+  };
+}

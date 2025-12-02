@@ -1,15 +1,17 @@
 "use client";
 
 import { useDealState } from "@/lib/contexts/deal-state-context";
+import { useMemo } from "@/lib/contexts/memo-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
-import { Building, ArrowLeft } from "lucide-react";
+import { Building, ArrowLeft, FileText } from "lucide-react";
 import Link from "next/link";
 
 export function DealHeader() {
     const { deal } = useDealState();
+    const { memo, openCanvas } = useMemo();
 
     return (
         <header className="bg-white/80 backdrop-blur-md border-b border-slate-200 h-16 flex items-center px-8 sticky top-0 z-10 justify-between">
@@ -37,6 +39,15 @@ export function DealHeader() {
                         <AvatarFallback>SA</AvatarFallback>
                     </Avatar>
                 </div>
+                <Button
+                    variant="outline"
+                    size="sm"
+                    className="hidden md:flex"
+                    onClick={openCanvas}
+                >
+                    <FileText className="h-4 w-4 mr-2" />
+                    {memo ? 'View Memo' : 'IC Memo'}
+                </Button>
                 <Button variant="outline" size="sm" className="hidden md:flex">
                     Share
                 </Button>

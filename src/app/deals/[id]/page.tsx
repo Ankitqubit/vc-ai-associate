@@ -15,11 +15,14 @@ import { notFound } from "next/navigation";
 import { AIInterface } from "@/components/layout/ai-interface";
 import { DealContext } from "@/components/features/deal-context";
 import { DealStateProvider } from "@/lib/contexts/deal-state-context";
+import { MemoProvider } from "@/lib/contexts/memo-context";
+import { MemoActions } from "@/components/features/memo-actions";
 import { DealHeader } from "@/components/features/deal-header";
 import { DealHero } from "@/components/features/deal-hero";
 import { DealMetrics } from "@/components/features/deal-metrics";
 import { DealFitScore } from "@/components/features/deal-fit-score";
 import { DealTimeline } from "@/components/features/deal-timeline";
+import { DealPageContent } from "./page-content";
 
 
 interface PageProps {
@@ -38,8 +41,11 @@ export default async function DealPage({ params }: PageProps) {
 
     return (
         <DealStateProvider initialDeal={deal}>
-            <div className="h-screen bg-[#F8FAFC] flex font-sans overflow-hidden">
-                <DealContext />
+            <MemoProvider>
+                <DealPageContent>
+                    <DealContext />
+                    <MemoActions />
+                    <div className="h-screen bg-[#F8FAFC] flex font-sans overflow-hidden">
 
                 {/* Main Content Area */}
                 <div className="flex-1 flex flex-col min-w-0">
@@ -91,7 +97,9 @@ export default async function DealPage({ params }: PageProps) {
 
 
 
-            </div>
+                </div>
+                </DealPageContent>
+            </MemoProvider>
         </DealStateProvider>
     );
 }
