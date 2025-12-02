@@ -116,5 +116,57 @@ export function GlobalActions() {
         },
     });
 
+    // Get deal information action
+    useCopilotAction({
+        name: "get_deal_info",
+        description: "Get detailed information about a specific deal including fit score, metrics, stage, and company details. Use this when the user asks about a specific company or deal.",
+        parameters: [
+            {
+                name: "dealId",
+                type: "string",
+                description: "The ID of the deal (e.g., 'deal-1') or company name. Available deals: Acme Corp (deal-1), DataFlow AI (deal-2), HealthTech Solutions (deal-3), CloudScale (deal-4), EduLearn (deal-5), FinSync (deal-6).",
+                required: true,
+            },
+        ],
+        handler: async ({ dealId }: { dealId: string }) => {
+            // Map company names to deal IDs
+            const companyMap: Record<string, string> = {
+                'acme corp': 'deal-1',
+                'acme': 'deal-1',
+                'dataflow ai': 'deal-2',
+                'dataflow': 'deal-2',
+                'healthtech solutions': 'deal-3',
+                'healthtech': 'deal-3',
+                'cloudscale': 'deal-4',
+                'edulearn': 'deal-5',
+                'finsync': 'deal-6',
+            };
+
+            const normalizedInput = dealId.toLowerCase().trim();
+            const actualDealId = companyMap[normalizedInput] || dealId;
+
+            // Return the dealId so AIInterface can render the card
+            return {
+                dealId: actualDealId,
+                action: 'show_deal_info'
+            };
+        },
+    });
+
+    // List all deals action
+    useCopilotAction({
+        name: "list_all_deals",
+        description: "List all deals in the pipeline with their stages and fit scores. Use this when the user asks to see all deals, what deals we have, or wants a pipeline overview.",
+        parameters: [],
+        handler: async () => {
+            const { mockDeals } = require('@/lib/data/mock-db');
+            const dealsList = mockDeals.map((d: any) =>
+                `${d.company.name} (${d.stage}) - Fit Score: ${d.fitScore.score}/100`
+            ).join('\n');
+
+            return `Here are all the deals in our pipeline:\n\n${dealsList}\n\nWould you like to see details about any specific deal?`;
+        },
+    });
+
     return null;
 }

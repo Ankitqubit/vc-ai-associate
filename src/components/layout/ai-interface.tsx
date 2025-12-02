@@ -189,6 +189,15 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     if (!dealIds || dealIds.length === 0) return null;
 
                     return <DealComparisonWrapper dealIds={dealIds} />;
+                case "get_deal_info":
+                    // Show deal card for the requested deal
+                    const requestedDealId = result?.dealId || args?.dealId;
+                    if (!requestedDealId) return null;
+
+                    const requestedDeal = getDealById(requestedDealId);
+                    if (!requestedDeal) return null;
+
+                    return <DealCard deal={requestedDeal} />;
             }
         }
 
