@@ -74,6 +74,36 @@ export const mockDeals: Deal[] = [
                 },
             },
         ],
+        callSummaries: [
+            {
+                id: 'cs-1',
+                whatWeLearned: [
+                    "Strong early traction with 12 hospital customers",
+                    "Product-market fit validated by 85% patient engagement rate",
+                    "Regulatory clearance is the main bottleneck for scaling"
+                ],
+                metricsShared: [
+                    { name: "ARR", value: "$450K", change: "+15% MoM" },
+                    { name: "Customers", value: "12", change: "+4" },
+                    { name: "Engagement", value: "85%" }
+                ],
+                risksAndConcerns: [
+                    "FDA clearance timeline is uncertain (Q3 target)",
+                    "Sales cycles are longer than expected (9-12 months)",
+                    "Heavy reliance on top 3 customers"
+                ],
+                nextSteps: [
+                    "Schedule technical DD call with CTO",
+                    "Request customer references",
+                    "Review regulatory strategy"
+                ],
+                metadata: {
+                    date: '2024-03-15',
+                    participants: ['Sarah Chen', 'Mike Ross'],
+                    duration: 45
+                }
+            }
+        ]
     },
     {
         id: 'deal-2',
@@ -183,6 +213,34 @@ export const mockDeals: Deal[] = [
             },
         ],
         activities: [],
+        callSummaries: [
+            {
+                id: 'cs-3',
+                whatWeLearned: [
+                    "Pilot with Mayo Clinic is showing 40% efficiency gain",
+                    "AI model accuracy improved to 98.5%",
+                    "Need to hire 2 more senior ML engineers"
+                ],
+                metricsShared: [
+                    { name: "Pilot Efficiency", value: "40%", change: "+10%" },
+                    { name: "Model Accuracy", value: "98.5%", change: "+1.5%" }
+                ],
+                risksAndConcerns: [
+                    "Hiring market for ML engineers is very competitive",
+                    "Data privacy compliance (HIPAA) is becoming complex"
+                ],
+                nextSteps: [
+                    "Review HIPAA compliance audit report",
+                    "Intro to potential ML candidates",
+                    "Plan Series A fundraising timeline"
+                ],
+                metadata: {
+                    date: '2024-03-20',
+                    participants: ['Dr. Emily Zhang', 'David Kim'],
+                    duration: 60
+                }
+            }
+        ]
     },
     {
         id: 'deal-4',

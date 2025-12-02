@@ -168,5 +168,53 @@ export function GlobalActions() {
         },
     });
 
+    // Summarize call action
+    useCopilotAction({
+        name: "summarize_call",
+        description: "Summarize a call transcript. Use this when the user provides a transcript text and asks for a summary.",
+        parameters: [
+            {
+                name: "transcript",
+                type: "string",
+                description: "The full text of the call transcript.",
+                required: true,
+            },
+            {
+                name: "dealId",
+                type: "string",
+                description: "The deal ID (e.g., 'deal-1') if known. If not provided, try to infer from context or ask user.",
+                required: false,
+            }
+        ],
+        handler: async ({ transcript, dealId }: { transcript: string; dealId?: string }) => {
+            try {
+                const response = await fetch('/api/calls/summarize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        transcript,
+                        dealId,
+                        metadata: {
+                            date: new Date().toISOString().split('T')[0],
+                            participants: []
+                        }
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to summarize');
+
+                const data = await response.json();
+
+                return {
+                    summary: data.summary,
+                    action: 'show_call_summary'
+                };
+            } catch (error) {
+                console.error('Summarization failed:', error);
+                return "I'm sorry, I couldn't summarize the call at this moment. Please try again.";
+            }
+        },
+    });
+
     return null;
 }

@@ -19,6 +19,7 @@ import { DealHeader } from "@/components/features/deal-header";
 import { DealHero } from "@/components/features/deal-hero";
 import { DealMetrics } from "@/components/features/deal-metrics";
 import { DealFitScore } from "@/components/features/deal-fit-score";
+import { DealTimeline } from "@/components/features/deal-timeline";
 
 
 interface PageProps {
@@ -74,11 +75,7 @@ export default async function DealPage({ params }: PageProps) {
                                 </TabsContent>
 
                                 <TabsContent value="timeline">
-                                    <Card className="border-slate-200 shadow-sm">
-                                        <CardContent className="p-6">
-                                            <p className="text-slate-500 text-center py-8">Timeline view coming soon...</p>
-                                        </CardContent>
-                                    </Card>
+                                    <DealTimeline />
                                 </TabsContent>
                             </Tabs>
 

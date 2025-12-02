@@ -1,14 +1,15 @@
-export type DealStage = 
-  | 'Inbound' 
-  | 'First Look' 
-  | 'First Call' 
-  | 'Deep Dive' 
-  | 'Pre-IC' 
-  | 'IC' 
-  | 'Due Diligence' 
-  | 'Term Sheet' 
-  | 'Closed Won' 
-  | 'Closed Lost';
+export type DealStage =
+  | 'Inbound'
+  | 'First Look'
+  | 'First Call'
+  | 'Deep Dive'
+  | 'Pre-IC'
+  | 'IC'
+  | 'Due Diligence'
+  | 'Term Sheet'
+  | 'Closed Won'
+  | 'Closed Lost'
+  | 'Passed';
 
 export interface Company {
   id: string;
@@ -53,6 +54,19 @@ export interface Activity {
   };
 }
 
+export interface CallSummary {
+  id?: string;
+  whatWeLearned: string[];
+  metricsShared: Array<{ name: string; value: string; change?: string }>;
+  risksAndConcerns: string[];
+  nextSteps: string[];
+  metadata: {
+    date: string;
+    participants: string[];
+    duration?: number;
+  };
+}
+
 export interface Deal {
   id: string;
   company: Company;
@@ -66,4 +80,5 @@ export interface Deal {
   source: string;
   metrics: Metric[];
   activities: Activity[];
+  callSummaries?: CallSummary[];
 }

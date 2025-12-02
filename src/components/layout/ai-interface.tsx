@@ -15,6 +15,7 @@ import { CompanyUpdateCard } from "@/components/copilot/CompanyUpdateCard";
 import { DealCard } from "@/components/copilot/DealCard";
 import { MetricsDisplay } from "@/components/copilot/MetricsDisplay";
 import { DealComparisonCard } from "@/components/copilot/DealComparisonCard";
+import { CallSummaryCard } from "@/components/copilot/CallSummaryCard";
 import { useSafeDealState } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
 
@@ -198,6 +199,8 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     if (!requestedDeal) return null;
 
                     return <DealCard deal={requestedDeal} />;
+                case "show_call_summary":
+                    return <CallSummaryCard summary={result.summary} />;
             }
         }
 
