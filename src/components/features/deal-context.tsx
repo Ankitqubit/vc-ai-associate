@@ -141,12 +141,12 @@ export function DealContext() {
     // Action: Update Deal Stage
     useCopilotAction({
         name: "update_deal_stage",
-        description: "Move the deal to a different pipeline stage",
+        description: "Move the deal to a different pipeline stage. Valid stages are: 'Inbound', 'First Call', 'Deep Dive', 'IC', 'Term Sheet', 'Closed Won', 'Passed'. If the user asks to move to 'next stage', ask for clarification on which stage.",
         parameters: [
             {
                 name: "newStage",
                 type: "string",
-                description: "The new stage for the deal (e.g., 'Screening', 'Due Diligence', 'Term Sheet', 'Closed Won')",
+                description: "The new stage for the deal. Must be one of: 'Inbound', 'First Call', 'Deep Dive', 'IC', 'Term Sheet', 'Closed Won', 'Passed'.",
                 required: true,
             },
             {
@@ -189,7 +189,7 @@ export function DealContext() {
 
                 if (!res.ok) throw new Error('Failed to save');
 
-                return `Successfully moved deal to ${newStage}`;
+                return `Successfully moved deal to ${newStage}. You can view the updated pipeline by asking me to "open the pipeline".`;
             } catch (error) {
                 // 4. Rollback
                 console.error('Update failed:', error);

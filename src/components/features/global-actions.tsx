@@ -3,7 +3,7 @@
 import { useCopilotAction } from "@copilotkit/react-core";
 import { useRouter } from "next/navigation";
 
-export function DashboardActions() {
+export function GlobalActions() {
     const router = useRouter();
 
     // Navigation action for deal-related queries
@@ -21,6 +21,17 @@ export function DashboardActions() {
         handler: async ({ dealId }: { dealId: string }) => {
             router.push(`/deals/${dealId}`);
             return `Navigating to ${dealId}. The conversation will continue on the deal page.`;
+        },
+    });
+
+    // Navigation action for pipeline view
+    useCopilotAction({
+        name: "navigate_to_pipeline",
+        description: "Navigate to the deal pipeline view (Kanban board) to see all deals by stage. Use this when the user asks to see the pipeline, all deals, or wants to visualize the deal flow.",
+        parameters: [],
+        handler: async () => {
+            router.push('/pipeline');
+            return "Opening the pipeline view.";
         },
     });
 

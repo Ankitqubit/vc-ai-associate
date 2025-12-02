@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Sparkles, ArrowRight, Clock, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { AIInterface } from "@/components/layout/ai-interface";
-import { DashboardActions } from "@/components/features/dashboard-actions";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -20,8 +19,7 @@ export default function DashboardPage() {
     return (
         <DealStateProvider initialDeal={defaultDeal!}>
             <div className="h-screen flex flex-col bg-slate-50/50 font-sans relative overflow-hidden">
-                {/* CopilotKit Actions */}
-                <DashboardActions />
+                {/* CopilotKit Actions are now global */}
 
                 {/* Background Pattern */}
                 <div className="absolute inset-0 z-0 opacity-[0.03]"
