@@ -7,10 +7,10 @@ import { restoreMemoVersion } from '@/lib/data/mock-db';
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string; versionId: string } }
+  { params }: { params: Promise<{ id: string; versionId: string }> }
 ) {
   try {
-    const { id: memoId, versionId } = params;
+    const { id: memoId, versionId } = await params;
 
     const success = restoreMemoVersion(memoId, versionId);
 

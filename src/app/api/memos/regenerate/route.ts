@@ -108,6 +108,10 @@ ${JSON.stringify(dealContext, null, 2)}`,
         memo.metadata.wordCount = memo.sections.reduce((sum, s) => sum + s.content.split(' ').length, 0);
         memo.metadata.estimatedReadTime = Math.ceil(memo.metadata.wordCount / 200);
 
+        // Create version snapshot after regeneration
+        const { saveMemoVersion } = require('@/lib/data/mock-db');
+        saveMemoVersion(memo.id, `Regenerated ${section.title} section`);
+
         return NextResponse.json({
             section: {
                 id: section.id,

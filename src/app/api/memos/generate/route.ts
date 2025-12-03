@@ -228,6 +228,14 @@ ${JSON.stringify(dealContext, null, 2)}`,
         // Save to mock database
         createMemo(memo);
 
+        // Create initial version
+        const { saveMemoVersion, getMemoVersions } = require('@/lib/data/mock-db');
+        saveMemoVersion(memo.id, 'Initial memo generation');
+
+        // Fetch the updated memo with version
+        const updatedVersions = getMemoVersions(memo.id);
+        memo.versions = updatedVersions;
+
         return NextResponse.json({ memo });
 
     } catch (error) {

@@ -7,10 +7,10 @@ import { getMemoVersions, saveMemoVersion, getMemoByDealId } from '@/lib/data/mo
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const memoId = params.id;
+    const { id: memoId } = await params;
     const versions = getMemoVersions(memoId);
 
     return NextResponse.json({
@@ -33,10 +33,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const memoId = params.id;
+    const { id: memoId } = await params;
     const body = await request.json();
     const { changeDescription } = body;
 

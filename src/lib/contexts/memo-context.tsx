@@ -80,6 +80,26 @@ export function MemoProvider({ children, initialMemo = null }: MemoProviderProps
             sections: updatedSections,
             updatedAt: new Date().toISOString(),
         });
+
+        // Create version snapshot after edit (debounced to avoid too many versions)
+        // Only create version if significant change (>50 characters difference)
+        const section = memo.sections.find(s => s.id === sectionId);
+        if (section && Math.abs(content.length - section.content.length) > 50) {
+            // Debounce version creation to avoid creating versions on every keystroke
+            setTimeout(async () => {
+                try {
+                    await fetch(`/api/memos/${memo.id}/versions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            changeDescription: `Edited ${section.title} section`,
+                        }),
+                    });
+                } catch (error) {
+                    console.error('Failed to create version:', error);
+                }
+            }, 3000); // 3 second debounce
+        }
     }, [memo]);
 
     const regenerateSection = useCallback(async (sectionId: string, feedback?: string) => {
