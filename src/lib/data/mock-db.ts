@@ -1,4 +1,4 @@
-import { Deal, MemoTemplate, InvestmentMemo } from '../types';
+import { Deal, MemoTemplate, InvestmentMemo, TeamMember, CommentThread } from '../types';
 
 export const mockDeals: Deal[] = [
     {
@@ -683,4 +683,119 @@ export const restoreMemoVersion = (memoId: string, versionId: string): boolean =
     memo.updatedAt = new Date().toISOString();
 
     return true;
+};
+
+// Team Members and Comments
+
+/**
+ * Mock team members for @mentions
+ */
+export const mockTeamMembers: TeamMember[] = [
+    {
+        id: 'user-1',
+        name: 'Sarah Chen',
+        email: 'sarah@vc-firm.com',
+        role: 'partner',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+    },
+    {
+        id: 'user-2',
+        name: 'Michael Rodriguez',
+        email: 'michael@vc-firm.com',
+        role: 'principal',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
+    },
+    {
+        id: 'user-3',
+        name: 'Emily Johnson',
+        email: 'emily@vc-firm.com',
+        role: 'analyst',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
+    },
+    {
+        id: 'user-4',
+        name: 'David Park',
+        email: 'david@vc-firm.com',
+        role: 'associate',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
+    },
+    {
+        id: 'user-current',
+        name: 'You',
+        email: 'you@vc-firm.com',
+        role: 'analyst',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=You',
+    },
+];
+
+/**
+ * Mock comments storage
+ */
+export const mockComments: CommentThread[] = [];
+
+// Comment helper functions
+
+export const getCommentsByMemoId = (memoId: string): CommentThread[] => {
+    return mockComments.filter(c => c.memoId === memoId);
+};
+
+export const getCommentsBySectionId = (memoId: string, sectionId: string): CommentThread[] => {
+    return mockComments.filter(c => c.memoId === memoId && c.sectionId === sectionId);
+};
+
+export const getCommentById = (commentId: string): CommentThread | undefined => {
+    return mockComments.find(c => c.id === commentId);
+};
+
+export const createComment = (comment: CommentThread): void => {
+    mockComments.push(comment);
+};
+
+export const updateCommentStatus = (
+    commentId: string,
+    status: CommentThread['status'],
+    resolvedBy?: CommentThread['resolvedBy']
+): boolean => {
+    const comment = mockComments.find(c => c.id === commentId);
+    if (!comment) return false;
+
+    comment.status = status;
+    comment.resolvedBy = resolvedBy;
+    comment.updatedAt = new Date().toISOString();
+
+    return true;
+};
+
+export const addCommentReply = (
+    commentId: string,
+    reply: CommentThread['replies'][0]
+): boolean => {
+    const comment = mockComments.find(c => c.id === commentId);
+    if (!comment) return false;
+
+    comment.replies.push(reply);
+    comment.updatedAt = new Date().toISOString();
+
+    return true;
+};
+
+export const deleteComment = (commentId: string): boolean => {
+    const index = mockComments.findIndex(c => c.id === commentId);
+    if (index === -1) return false;
+
+    mockComments.splice(index, 1);
+    return true;
+};
+
+export const getTeamMembers = (): TeamMember[] => {
+    return mockTeamMembers;
+};
+
+export const searchTeamMembers = (query: string): TeamMember[] => {
+    const lowerQuery = query.toLowerCase();
+    return mockTeamMembers.filter(
+        member =>
+            member.name.toLowerCase().includes(lowerQuery) ||
+            member.email.toLowerCase().includes(lowerQuery)
+    );
 };

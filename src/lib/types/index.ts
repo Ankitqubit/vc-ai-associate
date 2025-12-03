@@ -195,3 +195,68 @@ export interface InvestmentMemo {
     estimatedReadTime: number; // minutes
   };
 }
+
+// Comment and Collaboration Types
+
+export type CommentStatus = 'open' | 'addressed' | 'dismissed';
+
+export interface CommentMention {
+  userId: string;
+  userName: string;
+  position: number; // Position in comment text where @mention appears
+}
+
+export interface CommentThread {
+  id: string;
+  memoId: string;
+  sectionId: string;
+  // Text selection range
+  textRange: {
+    from: number; // Character position in section content
+    to: number;
+    text: string; // The highlighted text
+  };
+  // Root comment
+  content: string;
+  author: {
+    id: string;
+    name: string;
+    avatar?: string;
+    isAi: boolean;
+  };
+  mentions: CommentMention[];
+  createdAt: string;
+  updatedAt: string;
+  // Thread metadata
+  status: CommentStatus;
+  resolvedBy?: {
+    id: string;
+    name: string;
+    timestamp: string;
+  };
+  // Replies
+  replies: CommentReply[];
+}
+
+export interface CommentReply {
+  id: string;
+  threadId: string;
+  content: string;
+  author: {
+    id: string;
+    name: string;
+    avatar?: string;
+    isAi: boolean;
+  };
+  mentions: CommentMention[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  role: 'partner' | 'principal' | 'analyst' | 'associate';
+}
