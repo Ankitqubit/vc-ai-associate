@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { MemoSection as MemoSectionType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useMemo } from '@/lib/contexts/memo-context';
@@ -22,6 +22,10 @@ interface MemoSectionProps {
 export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
     const { updateSection } = useMemo();
     const [isAIProcessing, setIsAIProcessing] = useState(false);
+    const [originalContent, setOriginalContent] = useState(section.content);
+    const [wasEdited, setWasEdited] = useState(false);
+    const saveTimeoutRef = useRef<NodeJS.Timeout>();
+    const isUpdatingRef = useRef(false);
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -50,20 +54,43 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         },
         onUpdate: ({ editor }) => {
             const html = editor.getHTML();
+
+            // Skip if we're updating from external source
+            if (isUpdatingRef.current) {
+                return;
+            }
+
             if (html !== section.content) {
-                // Debounce save
-                const timeoutId = setTimeout(() => {
+                // Check if this is a significant edit (>5% content change)
+                const oldLength = originalContent.replace(/<[^>]*>/g, '').length;
+                const newLength = html.replace(/<[^>]*>/g, '').length;
+                const changePercent = Math.abs(newLength - oldLength) / Math.max(oldLength, 1);
+
+                // Mark as edited if significant change from original AI content
+                if (changePercent > 0.05 && section.source === 'ai') {
+                    setWasEdited(true);
+                }
+
+                // Debounce save - clear previous timeout
+                if (saveTimeoutRef.current) {
+                    clearTimeout(saveTimeoutRef.current);
+                }
+                saveTimeoutRef.current = setTimeout(() => {
                     updateSection(section.id, html);
                 }, 1000);
-                return () => clearTimeout(timeoutId);
             }
         },
     });
 
-    // Update editor content when section changes
+    // Update editor content when section changes (from external sources only)
     useEffect(() => {
         if (editor && editor.getHTML() !== section.content) {
+            isUpdatingRef.current = true;
             editor.commands.setContent(section.content);
+            // Reset flag after a brief delay
+            setTimeout(() => {
+                isUpdatingRef.current = false;
+            }, 100);
         }
     }, [section.content, editor]);
 
@@ -102,27 +129,39 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         return null;
     }
 
+    // Determine if this is human-edited content
+    const isHumanContent = section.source === 'human' || section.source === 'mixed' || (section.source === 'ai' && wasEdited);
+
     return (
-        <div className="mb-8 relative">
+        <div className="mb-8 relative group">
             {/* AI Processing Indicator */}
             {isAIProcessing && (
-                <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded">
+                <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded z-10">
                     <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                     AI working...
                 </div>
             )}
 
             {/* Section Title - Clean and minimal like Notion */}
-            <h2 className="text-2xl font-bold text-slate-900 mb-3">
+            <h2 className={cn(
+                "text-2xl font-bold mb-3 transition-colors",
+                isHumanContent ? "text-cyan-600" : "text-slate-900"
+            )}>
                 {section.title}
             </h2>
 
-            {/* Section Content - Clean, no borders, just like Notion */}
+            {/* Section Content with color differentiation */}
             <div className="transition-colors">
                 {/* Bubble Menu Toolbar */}
                 <BubbleMenuToolbar editor={editor} onAIAction={handleAIAction} />
 
-                <EditorContent editor={editor} />
+                <EditorContent
+                    editor={editor}
+                    className={cn(
+                        "memo-content",
+                        isHumanContent && "text-cyan-700"
+                    )}
+                />
             </div>
 
             <style jsx global>{`
@@ -131,6 +170,14 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                     font-size: 15px;
                     line-height: 1.7;
                     color: #334155;
+                }
+
+                .memo-content.text-cyan-700 .ProseMirror,
+                .memo-content.text-cyan-700 .ProseMirror p,
+                .memo-content.text-cyan-700 .ProseMirror h1,
+                .memo-content.text-cyan-700 .ProseMirror h2,
+                .memo-content.text-cyan-700 .ProseMirror li {
+                    color: #0e7490 !important;
                 }
 
                 .ProseMirror p.is-editor-empty:first-child::before {
