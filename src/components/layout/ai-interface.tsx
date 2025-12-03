@@ -16,6 +16,7 @@ import { DealCard } from "@/components/copilot/DealCard";
 import { MetricsDisplay } from "@/components/copilot/MetricsDisplay";
 import { DealComparisonCard } from "@/components/copilot/DealComparisonCard";
 import { CallSummaryCard } from "@/components/copilot/CallSummaryCard";
+import { MemoGenerateCard } from "@/components/copilot/MemoGenerateCard";
 import { useSafeDealState } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
 import { useSelection } from "@/lib/contexts/selection-context";
@@ -260,6 +261,14 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     return <DealCard deal={requestedDeal} />;
                 case "show_call_summary":
                     return <CallSummaryCard summary={result.summary} dealId={result.dealId} />;
+                case "generate_investment_memo":
+                    return (
+                        <MemoGenerateCard
+                            dealId={args.dealId}
+                            status={status}
+                            result={result}
+                        />
+                    );
             }
         }
 

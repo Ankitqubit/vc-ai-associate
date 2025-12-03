@@ -4,6 +4,7 @@ import { useCopilotAction, useCopilotReadable } from "@copilotkit/react-core";
 import { useRouter, useParams } from "next/navigation";
 import { useMemo } from "@/lib/contexts/memo-context";
 import { useSafeDealState } from "@/lib/contexts/deal-state-context";
+import { MemoGenerateCard } from "@/components/copilot/MemoGenerateCard";
 
 export function MemoActions() {
     const router = useRouter();
@@ -50,13 +51,30 @@ export function MemoActions() {
                 const data = await response.json();
                 setMemo(data.memo);
 
-                return `Successfully generated IC memo with ${data.memo.sections.length} sections (${data.memo.metadata.wordCount} words). The memo canvas is now open on the right side of your screen. Click the "IC Memo" button in the header to view it anytime.`;
+                // Return structured data for the card component
+                return {
+                    success: true,
+                    memo: data.memo,
+                    message: `Successfully generated IC memo with ${data.memo.sections.length} sections`,
+                };
             } catch (error) {
                 console.error('Failed to generate memo:', error);
-                return "Failed to generate memo. Please try again.";
+                return {
+                    success: false,
+                    message: "Failed to generate memo. Please try again.",
+                };
             } finally {
                 setIsGenerating(false);
             }
+        },
+        render: ({ status, args, result }: any) => {
+            return (
+                <MemoGenerateCard
+                    dealId={args.dealId}
+                    status={status}
+                    result={result}
+                />
+            );
         },
     });
 
