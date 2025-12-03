@@ -42,62 +42,9 @@ export default async function DealPage({ params }: PageProps) {
     return (
         <DealStateProvider initialDeal={deal}>
             <MemoProvider>
-                <DealPageContent>
+                <DealPageContent deal={deal}>
                     <DealContext />
                     <MemoActions />
-                    <div className="h-screen bg-[#F8FAFC] flex font-sans overflow-hidden">
-
-                {/* Main Content Area */}
-                <div className="flex-1 flex flex-col min-w-0">
-
-                    {/* Top Navigation */}
-                    <DealHeader />
-
-                    {/* Scrollable Content */}
-                    <main className="flex-1 overflow-y-auto p-8 scrollbar-hide">
-                        <div className="max-w-5xl mx-auto space-y-8 pb-20">
-
-                            {/* Hero Section */}
-                            <DealHero />
-
-                            {/* Tabs & Content */}
-                            <Tabs defaultValue="overview" className="w-full">
-                                <TabsList className="bg-slate-100/50 p-1 rounded-xl mb-6 inline-flex">
-                                    <TabsTrigger value="overview" className="rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Overview</TabsTrigger>
-                                    <TabsTrigger value="timeline" className="rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Timeline</TabsTrigger>
-                                    <TabsTrigger value="documents" className="rounded-lg px-4 py-2 text-sm font-medium data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm transition-all">Documents</TabsTrigger>
-                                </TabsList>
-
-                                <TabsContent value="overview" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-                                    {/* Thesis Fit Score */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <DealFitScore />
-
-                                        {/* Key Metrics */}
-                                        <DealMetrics />
-                                    </div>
-
-                                </TabsContent>
-
-                                <TabsContent value="timeline">
-                                    <DealTimeline />
-                                </TabsContent>
-                            </Tabs>
-
-                        </div>
-                    </main>
-                </div>
-
-                {/* AI Interface - Sidebar Mode */}
-                <AIInterface
-                    layout="sidebar"
-                    className="relative h-screen border-l border-slate-200 shadow-none z-0 w-[400px] flex-shrink-0"
-                />
-
-
-
-                </div>
                 </DealPageContent>
             </MemoProvider>
         </DealStateProvider>
