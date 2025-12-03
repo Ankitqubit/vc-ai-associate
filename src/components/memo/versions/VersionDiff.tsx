@@ -2,8 +2,6 @@
 
 import { VersionDiff as VersionDiffType, DiffChange } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { Plus, Minus, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,13 +22,11 @@ export function VersionDiff({ diffs }: VersionDiffProps) {
   }
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-4 space-y-4">
-        {diffs.map((diff) => (
-          <DiffSection key={diff.sectionId} diff={diff} />
-        ))}
-      </div>
-    </ScrollArea>
+    <div className="px-6 pb-6 space-y-4">
+      {diffs.map((diff) => (
+        <DiffSection key={diff.sectionId} diff={diff} />
+      ))}
+    </div>
   );
 }
 

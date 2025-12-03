@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { VersionList } from "./VersionList";
 import { VersionDiff } from "./VersionDiff";
 import { useMemoVersions } from "@/lib/hooks/use-memo-versions";
-import { X, History, GitCompare } from "lucide-react";
+import { History, GitCompare } from "lucide-react";
 import { toast } from "sonner";
 
 interface VersionHistoryDrawerProps {
@@ -95,33 +95,30 @@ export function VersionHistoryDrawer({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent side="right" className="w-full sm:w-[600px] sm:max-w-[600px] p-0 flex flex-col">
         <SheetHeader className="p-6 pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <History className="h-5 w-5" />
-              <SheetTitle>Version History</SheetTitle>
-            </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
-              <X className="h-4 w-4" />
-            </Button>
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            <SheetTitle>Version History</SheetTitle>
           </div>
           <SheetDescription>
             {versions.length} version{versions.length !== 1 ? 's' : ''} saved
           </SheetDescription>
         </SheetHeader>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "list" | "diff")} className="flex-1 flex flex-col">
-          <TabsList className="mx-6 grid w-full max-w-[400px] grid-cols-2">
-            <TabsTrigger value="list" className="flex items-center gap-2">
-              <History className="h-4 w-4" />
-              Versions
-            </TabsTrigger>
-            <TabsTrigger value="diff" className="flex items-center gap-2" disabled={!diff}>
-              <GitCompare className="h-4 w-4" />
-              Compare
-            </TabsTrigger>
-          </TabsList>
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "list" | "diff")} className="flex-1 flex flex-col overflow-hidden">
+          <div className="flex-shrink-0">
+            <TabsList className="mx-6 grid w-full max-w-[400px] grid-cols-2">
+              <TabsTrigger value="list" className="flex items-center gap-2">
+                <History className="h-4 w-4" />
+                Versions
+              </TabsTrigger>
+              <TabsTrigger value="diff" className="flex items-center gap-2" disabled={!diff}>
+                <GitCompare className="h-4 w-4" />
+                Compare
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <TabsContent value="list" className="flex-1 mt-4">
+          <TabsContent value="list" className="flex-1 mt-4 overflow-hidden">
             <VersionList
               versions={versions}
               currentVersion={currentVersion}
@@ -132,10 +129,10 @@ export function VersionHistoryDrawer({
             />
           </TabsContent>
 
-          <TabsContent value="diff" className="flex-1 mt-4">
+          <TabsContent value="diff" className="flex-1 mt-4 overflow-hidden data-[state=active]:flex data-[state=active]:flex-col">
             {diff ? (
-              <div>
-                <div className="px-6 pb-4">
+              <>
+                <div className="px-6 pb-4 flex-shrink-0">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span>Comparing:</span>
                     <span className="font-medium text-foreground">
@@ -158,8 +155,10 @@ export function VersionHistoryDrawer({
                     </Button>
                   </div>
                 </div>
-                <VersionDiff diffs={diff} />
-              </div>
+                <div className="flex-1 overflow-auto">
+                  <VersionDiff diffs={diff} />
+                </div>
+              </>
             ) : (
               <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
                 Select two versions to compare
