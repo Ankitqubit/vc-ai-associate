@@ -34,8 +34,17 @@ export function SelectionProvider({ children }: { children: ReactNode }) {
 
 export function useSelection() {
     const context = useContext(SelectionContext);
+
+    // Return default empty context if not wrapped in provider
+    // This allows AIInterface to work on pages without SelectionProvider
     if (context === undefined) {
-        throw new Error('useSelection must be used within a SelectionProvider');
+        return {
+            selectedText: null,
+            selectionSource: null,
+            setSelectedText: () => {},
+            clearSelection: () => {},
+        };
     }
+
     return context;
 }
