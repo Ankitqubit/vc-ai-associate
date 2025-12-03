@@ -5,6 +5,7 @@ import { CopilotKit } from "@copilotkit/react-core";
 import "@copilotkit/react-ui/styles.css";
 import { AIProvider } from "@/lib/contexts/ai-context";
 import { GlobalActions } from "@/components/features/global-actions";
+import { Toaster } from "sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +36,7 @@ export default function RootLayout({
           <AIProvider>
             <GlobalActions />
             {children}
+            <Toaster position="top-right" richColors />
           </AIProvider>
         </CopilotKit>
       </body>

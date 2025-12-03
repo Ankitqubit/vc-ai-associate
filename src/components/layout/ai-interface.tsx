@@ -18,6 +18,8 @@ import { DealComparisonCard } from "@/components/copilot/DealComparisonCard";
 import { CallSummaryCard } from "@/components/copilot/CallSummaryCard";
 import { useSafeDealState } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
+import { useSelection } from "@/lib/contexts/selection-context";
+import { ContextCard } from "@/components/chat/ContextCard";
 
 // Wrapper component to fetch deals for comparison
 function DealComparisonWrapper({ dealIds }: { dealIds: string[] }) {
@@ -55,6 +57,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const scrollRef = useRef<HTMLDivElement>(null);
     const dealState = useSafeDealState();
     const deal = dealState?.deal;
+    const { selectedText, selectionSource, clearSelection } = useSelection();
 
     const { visibleMessages, appendMessage, isLoading } = useCopilotChat({
         initialMessages: [],
@@ -289,7 +292,16 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                 </div>
 
                 {/* Footer - Fixed at bottom with suggestions + input */}
-                <div className="flex-shrink-0 pb-6">
+                <div className="flex-shrink-0 pb-6 space-y-3">
+                    {/* Context Card */}
+                    {selectedText && (
+                        <ContextCard
+                            text={selectedText}
+                            source={selectionSource || undefined}
+                            onClose={clearSelection}
+                        />
+                    )}
+
                     {/* Quick Action Suggestions - Hidden when chat is active */}
                     <div className={cn(
                         "flex justify-center gap-3 transition-all duration-500 ease-in-out",
@@ -485,7 +497,17 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
             )}>
                 {!isVoiceMode ? (
                     // Normal Input Mode
-                    <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-inner">
+                    <div className="space-y-3">
+                        {/* Context Card */}
+                        {selectedText && (
+                            <ContextCard
+                                text={selectedText}
+                                source={selectionSource || undefined}
+                                onClose={clearSelection}
+                            />
+                        )}
+
+                        <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-inner">
                         <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1 flex-shrink-0">
                             <Paperclip className="h-5 w-5" />
                         </Button>
@@ -541,6 +563,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 </Button>
                             )}
                         </div>
+                    </div>
                     </div>
                 ) : (
                     // Inline Voice Mode (Expanded)

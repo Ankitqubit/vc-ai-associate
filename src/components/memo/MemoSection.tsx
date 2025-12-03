@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { MemoSection as MemoSectionType } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useMemo } from '@/lib/contexts/memo-context';
+import { useSelection } from '@/lib/contexts/selection-context';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
@@ -13,6 +14,9 @@ import Highlight from '@tiptap/extension-highlight';
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import { BubbleMenuToolbar } from './BubbleMenuToolbar';
 import { useCopilotAction } from '@copilotkit/react-core';
+import { AIPreviewDiff } from './AIPreviewDiff';
+import { ExplanationTooltip } from './ExplanationTooltip';
+import { toast } from 'sonner';
 
 interface MemoSectionProps {
     section: MemoSectionType;
@@ -21,11 +25,27 @@ interface MemoSectionProps {
 
 export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
     const { updateSection } = useMemo();
+    const { setSelectedText } = useSelection();
     const [isAIProcessing, setIsAIProcessing] = useState(false);
+    const [aiActionType, setAiActionType] = useState<string>('');
     const [originalContent, setOriginalContent] = useState(section.content);
     const [wasEdited, setWasEdited] = useState(false);
     const saveTimeoutRef = useRef<NodeJS.Timeout>();
     const isUpdatingRef = useRef(false);
+
+    // Preview/Diff state
+    const [showPreview, setShowPreview] = useState(false);
+    const [previewData, setPreviewData] = useState<{
+        original: string;
+        new: string;
+        action: string;
+        selectionRange: { from: number; to: number };
+    } | null>(null);
+
+    // Explanation state
+    const [showExplanation, setShowExplanation] = useState(false);
+    const [explanation, setExplanation] = useState('');
+    const [explanationPosition, setExplanationPosition] = useState({ x: 0, y: 0 });
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -102,19 +122,48 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
 
         try {
             setIsAIProcessing(true);
+            setAiActionType(action);
 
             switch (action) {
                 case 'ask':
-                    // For "ask", just log for now - user can use the chat sidebar
-                    console.log('Ask about:', selectedText);
+                    // Set selected text in context for chat sidebar
+                    setSelectedText(selectedText, section.title);
+                    toast.success('Context Added to Chat', {
+                        description: 'Type your question in the chat sidebar'
+                    });
                     setIsAIProcessing(false);
+                    setAiActionType('');
                     break;
 
                 case 'explain':
-                    // Highlight text in yellow (explanation)
+                    // Get AI explanation and show tooltip
+                    const explainResponse = await fetch('/api/memos/explain-text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: selectedText,
+                            context: {
+                                sectionTitle: section.title,
+                                sectionType: section.type,
+                            },
+                        }),
+                    });
+
+                    if (!explainResponse.ok) throw new Error('Failed to get explanation');
+
+                    const explainData = await explainResponse.json();
+
+                    // Get position of selection
+                    const coords = editor.view.coordsAtPos(from);
+                    setExplanationPosition({ x: coords.left + (coords.right - coords.left) / 2, y: coords.top });
+                    setExplanation(explainData.explanation);
+                    setShowExplanation(true);
+
+                    // Highlight text in yellow
                     editor.chain().focus().setHighlight({ color: '#fef08a' }).run();
                     setWasEdited(true);
                     setIsAIProcessing(false);
+                    setAiActionType('');
                     break;
 
                 case 'rewrite':
@@ -138,33 +187,89 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
 
                     const data = await response.json();
 
-                    // Replace selected text with AI-generated text
-                    editor.chain().focus().deleteRange({ from, to }).insertContent(data.transformedText).run();
-                    setWasEdited(true);
+                    // Show preview instead of applying immediately
+                    setPreviewData({
+                        original: selectedText,
+                        new: data.transformedText,
+                        action,
+                        selectionRange: { from, to },
+                    });
+                    setShowPreview(true);
+                    setIsAIProcessing(false);
+                    setAiActionType('');
                     break;
 
                 case 'flag-risk':
                     // Highlight as risk (red)
                     editor.chain().focus().setHighlight({ color: '#fecaca' }).run();
                     setWasEdited(true);
+                    toast.success('Flagged as Risk', {
+                        description: 'Text highlighted in red'
+                    });
                     setIsAIProcessing(false);
+                    setAiActionType('');
                     break;
 
                 case 'mark-key':
                     // Highlight as key point (green)
                     editor.chain().focus().setHighlight({ color: '#bbf7d0' }).run();
                     setWasEdited(true);
+                    toast.success('Marked as Key Point', {
+                        description: 'Text highlighted in green'
+                    });
                     setIsAIProcessing(false);
+                    setAiActionType('');
                     break;
 
                 default:
                     console.log(`Unknown action: ${action}`);
                     setIsAIProcessing(false);
+                    setAiActionType('');
             }
         } catch (error) {
             console.error('AI action failed:', error);
+            toast.error('Action Failed', {
+                description: error instanceof Error ? error.message : 'Please try again'
+            });
             setIsAIProcessing(false);
+            setAiActionType('');
         }
+    };
+
+    // Handle accepting preview changes
+    const handleAcceptPreview = () => {
+        if (!editor || !previewData) return;
+
+        const { from, to } = previewData.selectionRange;
+        editor.chain().focus().deleteRange({ from, to }).insertContent(previewData.new).run();
+        setWasEdited(true);
+        setShowPreview(false);
+        setPreviewData(null);
+
+        toast.success('Changes Applied', {
+            description: `Text ${previewData.action}d successfully`
+        });
+    };
+
+    // Handle rejecting preview changes
+    const handleRejectPreview = () => {
+        setShowPreview(false);
+        setPreviewData(null);
+        toast.info('Changes Discarded', {
+            description: 'Original text preserved'
+        });
+    };
+
+    // Handle retrying with same action
+    const handleRetryPreview = async () => {
+        if (!previewData) return;
+
+        setShowPreview(false);
+        const tempData = previewData;
+        setPreviewData(null);
+
+        // Re-run the same action
+        await handleAIAction(tempData.action, tempData.original);
     };
 
     if (!editor) {
@@ -178,9 +283,15 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         <div className="mb-8 relative group">
             {/* AI Processing Indicator */}
             {isAIProcessing && (
-                <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 px-2 py-1 rounded z-10">
+                <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 px-3 py-2 rounded-lg shadow-sm z-10 animate-in fade-in-0 slide-in-from-top-2 duration-200">
                     <div className="w-3 h-3 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-                    AI working...
+                    <span className="font-medium">
+                        {aiActionType === 'rewrite' && 'Rewriting...'}
+                        {aiActionType === 'expand' && 'Expanding...'}
+                        {aiActionType === 'simplify' && 'Simplifying...'}
+                        {aiActionType === 'explain' && 'Generating explanation...'}
+                        {!aiActionType && 'AI working...'}
+                    </span>
                 </div>
             )}
 
@@ -205,6 +316,33 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                     )}
                 />
             </div>
+
+            {/* Preview/Diff Modal */}
+            {showPreview && previewData && (
+                <AIPreviewDiff
+                    originalText={previewData.original}
+                    newText={previewData.new}
+                    actionType={previewData.action}
+                    onAccept={handleAcceptPreview}
+                    onReject={handleRejectPreview}
+                    onRetry={handleRetryPreview}
+                />
+            )}
+
+            {/* Explanation Tooltip */}
+            {showExplanation && explanation && (
+                <ExplanationTooltip
+                    explanation={explanation}
+                    position={explanationPosition}
+                    onClose={() => setShowExplanation(false)}
+                    onAskFollowUp={() => {
+                        setShowExplanation(false);
+                        toast.info('Ask in Chat', {
+                            description: 'Use the chat sidebar to ask follow-up questions'
+                        });
+                    }}
+                />
+            )}
 
             <style jsx global>{`
                 .ProseMirror {

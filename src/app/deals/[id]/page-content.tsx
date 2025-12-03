@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useMemo } from "@/lib/contexts/memo-context";
+import { SelectionProvider } from "@/lib/contexts/selection-context";
 import { MemoCanvas } from "@/components/memo/memo-canvas";
 import { getMemoByDealId } from "@/lib/data/mock-db";
 import { AIInterface } from "@/components/layout/ai-interface";
@@ -34,7 +35,7 @@ export function DealPageContent({ children, deal }: DealPageContentProps) {
     }, [dealId, memo, setMemo]);
 
     return (
-        <>
+        <SelectionProvider>
             {children}
             <div className="h-screen bg-[#F8FAFC] flex font-sans overflow-hidden">
                 {/* Main Content Area - Conditionally show Deal or Canvas */}
@@ -88,6 +89,6 @@ export function DealPageContent({ children, deal }: DealPageContentProps) {
                     className="relative h-screen border-l border-slate-200 shadow-none z-0 w-[400px] flex-shrink-0"
                 />
             </div>
-        </>
+        </SelectionProvider>
     );
 }
