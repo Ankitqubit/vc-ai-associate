@@ -94,31 +94,73 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         }
     }, [section.content, editor]);
 
-    // Handle AI actions
+    // Handle AI actions from toolbar
     const handleAIAction = async (action: string, selectedText: string) => {
         if (!editor) return;
 
-        setIsAIProcessing(true);
         const { from, to } = editor.state.selection;
 
         try {
-            // Here we'll integrate with CopilotKit to handle AI actions
-            // For now, just showing a placeholder
-            console.log(`AI Action: ${action}`, selectedText);
+            setIsAIProcessing(true);
 
-            // TODO: Integrate with CopilotKit action for each AI operation
-            // Example actions:
-            // - ask: Open AI chat with context
-            // - explain: Get AI explanation and insert as comment/highlight
-            // - rewrite/expand/simplify: Get AI suggestions and replace text
-            // - fact-check: Verify against deal data
-            // - flag-risk: Add risk annotation
-            // - mark-key: Highlight as important
+            switch (action) {
+                case 'ask':
+                    // For "ask", just log for now - user can use the chat sidebar
+                    console.log('Ask about:', selectedText);
+                    setIsAIProcessing(false);
+                    break;
 
-            // Placeholder: Show that AI is working
-            setTimeout(() => {
-                setIsAIProcessing(false);
-            }, 1000);
+                case 'explain':
+                    // Highlight text in yellow (explanation)
+                    editor.chain().focus().setHighlight({ color: '#fef08a' }).run();
+                    setWasEdited(true);
+                    setIsAIProcessing(false);
+                    break;
+
+                case 'rewrite':
+                case 'expand':
+                case 'simplify':
+                    // Call AI API to transform the text
+                    const response = await fetch('/api/memos/transform-text', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            text: selectedText,
+                            action,
+                            context: {
+                                sectionTitle: section.title,
+                                sectionType: section.type,
+                            },
+                        }),
+                    });
+
+                    if (!response.ok) throw new Error('Failed to transform text');
+
+                    const data = await response.json();
+
+                    // Replace selected text with AI-generated text
+                    editor.chain().focus().deleteRange({ from, to }).insertContent(data.transformedText).run();
+                    setWasEdited(true);
+                    break;
+
+                case 'flag-risk':
+                    // Highlight as risk (red)
+                    editor.chain().focus().setHighlight({ color: '#fecaca' }).run();
+                    setWasEdited(true);
+                    setIsAIProcessing(false);
+                    break;
+
+                case 'mark-key':
+                    // Highlight as key point (green)
+                    editor.chain().focus().setHighlight({ color: '#bbf7d0' }).run();
+                    setWasEdited(true);
+                    setIsAIProcessing(false);
+                    break;
+
+                default:
+                    console.log(`Unknown action: ${action}`);
+                    setIsAIProcessing(false);
+            }
         } catch (error) {
             console.error('AI action failed:', error);
             setIsAIProcessing(false);
