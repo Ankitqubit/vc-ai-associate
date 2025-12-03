@@ -89,11 +89,27 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const handleSubmit = async () => {
         if (!inputValue.trim()) return;
 
+        // Build message content with context if available
+        let messageContent = inputValue;
+
+        if (selectedText) {
+            // Format context as quoted block (Perplexity-style)
+            const quotedContext = `> ${selectedText.replace(/\n/g, '\n> ')}`;
+            const sourceInfo = selectionSource ? `\n> *From: ${selectionSource}*` : '';
+            messageContent = `${quotedContext}${sourceInfo}\n\n${inputValue}`;
+        }
+
         appendMessage(new TextMessage({
-            content: inputValue,
+            content: messageContent,
             role: Role.User,
         }));
+
         setInputValue("");
+
+        // Clear context after sending
+        if (selectedText) {
+            clearSelection();
+        }
     };
 
     const handleDictate = () => {
@@ -122,6 +138,26 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         // 1. Handle Text Content
         const content = msg.content;
         if (typeof content === 'string' && content.trim().length > 0) {
+            // Check if message contains quoted context (starts with >)
+            const quoteMatch = content.match(/^((?:>.+(?:\n|$))+)\n*([\s\S]*)$/);
+
+            if (quoteMatch && isUserMessage(msg)) {
+                const [, quotedText, actualMessage] = quoteMatch;
+
+                return (
+                    <div className="space-y-2.5">
+                        {/* Quoted Context - styled like Perplexity */}
+                        <div className="border-l-2 border-white/40 pl-3 py-2 bg-white/20 rounded-r">
+                            <p className="text-sm leading-relaxed whitespace-pre-wrap text-white/90">
+                                {quotedText.replace(/^> /gm, '').replace(/^\*/gm, '').replace(/\*$/gm, '')}
+                            </p>
+                        </div>
+                        {/* User's Question */}
+                        {actualMessage && <p className="leading-relaxed text-white">{actualMessage}</p>}
+                    </div>
+                );
+            }
+
             return <p className="leading-relaxed">{content}</p>;
         }
 
