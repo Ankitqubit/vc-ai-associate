@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from 'react';
-import { MemoSection as MemoSectionType } from '@/lib/types';
+import { MemoSection as MemoSectionType, CommentThread, TeamMember } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { useMemo } from '@/lib/contexts/memo-context';
 import { useSelection } from '@/lib/contexts/selection-context';
@@ -12,11 +12,14 @@ import Underline from '@tiptap/extension-underline';
 import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
+import { CommentMark } from '@/lib/tiptap/extensions/CommentMark';
 import { BubbleMenuToolbar } from './BubbleMenuToolbar';
+import { CommentPopover } from './comments/CommentPopover';
 import { useCopilotAction } from '@copilotkit/react-core';
 import { AIPreviewDiff } from './AIPreviewDiff';
 import { ExplanationTooltip } from './ExplanationTooltip';
 import { toast } from 'sonner';
+import { mockTeamMembers } from '@/lib/data/mock-db';
 
 interface MemoSectionProps {
     section: MemoSectionType;
@@ -47,6 +50,16 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
     const [explanation, setExplanation] = useState('');
     const [explanationPosition, setExplanationPosition] = useState({ x: 0, y: 0 });
 
+    // Comment state
+    const [comments, setComments] = useState<CommentThread[]>([]);
+    const [showCommentPopover, setShowCommentPopover] = useState(false);
+    const [commentSelection, setCommentSelection] = useState<{
+        text: string;
+        from: number;
+        to: number;
+    } | null>(null);
+    const [commentPosition, setCommentPosition] = useState({ top: 0, left: 0 });
+
     const editor = useEditor({
         immediatelyRender: false,
         extensions: [
@@ -61,6 +74,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
             Highlight.configure({
                 multicolor: true,
             }),
+            CommentMark,
             BubbleMenuExtension,
             Placeholder.configure({
                 placeholder: 'Click to add content...',
@@ -272,6 +286,185 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         await handleAIAction(tempData.action, tempData.original);
     };
 
+    // Handle comment creation from toolbar
+    const handleComment = (selectedText: string, from: number, to: number) => {
+        if (!editor) return;
+
+        // Get position of selection for popover
+        const coords = editor.view.coordsAtPos(from);
+        setCommentPosition({
+            top: coords.bottom + 10,
+            left: coords.left
+        });
+
+        setCommentSelection({ text: selectedText, from, to });
+        setShowCommentPopover(true);
+    };
+
+    // Create a new comment
+    const handleCreateComment = async (content: string, mentions: any[]) => {
+        if (!commentSelection || !editor) return;
+
+        try {
+            const commentId = `comment-${Date.now()}`;
+
+            // Add comment mark to the selected text
+            const { from, to } = commentSelection;
+            editor.chain()
+                .focus()
+                .setTextSelection({ from, to })
+                .setCommentMark(commentId)
+                .run();
+
+            // Create comment thread
+            const newComment: CommentThread = {
+                id: commentId,
+                memoId: section.id, // Using section.id as memoId for now
+                sectionId: section.id,
+                textRange: {
+                    from: commentSelection.from,
+                    to: commentSelection.to,
+                    text: commentSelection.text,
+                },
+                content,
+                author: {
+                    id: 'user-current',
+                    name: mockTeamMembers[0].name,
+                    avatar: mockTeamMembers[0].avatar,
+                    isAi: false,
+                },
+                mentions,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                status: 'open',
+                replies: [],
+            };
+
+            setComments((prev) => [...prev, newComment]);
+            setShowCommentPopover(false);
+            setCommentSelection(null);
+
+            toast.success('Comment Added', {
+                description: 'Your comment has been saved',
+            });
+        } catch (error) {
+            console.error('Failed to create comment:', error);
+            toast.error('Failed to Add Comment', {
+                description: 'Please try again',
+            });
+        }
+    };
+
+    // Reply to a comment
+    const handleReply = async (threadId: string, content: string, mentions: any[]) => {
+        try {
+            const reply = {
+                id: `reply-${Date.now()}`,
+                threadId,
+                content,
+                author: {
+                    id: 'user-current',
+                    name: mockTeamMembers[0].name,
+                    avatar: mockTeamMembers[0].avatar,
+                    isAi: false,
+                },
+                mentions,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            };
+
+            setComments((prev) =>
+                prev.map((comment) =>
+                    comment.id === threadId
+                        ? { ...comment, replies: [...comment.replies, reply] }
+                        : comment
+                )
+            );
+
+            toast.success('Reply Added');
+        } catch (error) {
+            console.error('Failed to add reply:', error);
+            toast.error('Failed to Add Reply');
+        }
+    };
+
+    // Delete a comment
+    const handleDeleteComment = async (threadId: string) => {
+        try {
+            // Remove comment mark from editor
+            if (editor) {
+                editor.chain().focus().unsetCommentMark(threadId).run();
+            }
+
+            setComments((prev) => prev.filter((comment) => comment.id !== threadId));
+            toast.success('Comment Deleted');
+        } catch (error) {
+            console.error('Failed to delete comment:', error);
+            toast.error('Failed to Delete Comment');
+        }
+    };
+
+    // Delete a reply
+    const handleDeleteReply = async (threadId: string, replyId: string) => {
+        try {
+            setComments((prev) =>
+                prev.map((comment) =>
+                    comment.id === threadId
+                        ? {
+                              ...comment,
+                              replies: comment.replies.filter((reply) => reply.id !== replyId),
+                          }
+                        : comment
+                )
+            );
+            toast.success('Reply Deleted');
+        } catch (error) {
+            console.error('Failed to delete reply:', error);
+            toast.error('Failed to Delete Reply');
+        }
+    };
+
+    // Resolve/dismiss a comment
+    const handleResolveComment = async (threadId: string, status: CommentThread['status']) => {
+        try {
+            const resolvedBy =
+                status !== 'open'
+                    ? {
+                          id: 'user-current',
+                          name: mockTeamMembers[0].name,
+                          timestamp: new Date().toISOString(),
+                      }
+                    : undefined;
+
+            setComments((prev) =>
+                prev.map((comment) =>
+                    comment.id === threadId
+                        ? { ...comment, status, resolvedBy, updatedAt: new Date().toISOString() }
+                        : comment
+                )
+            );
+
+            // Update comment mark status in editor
+            if (editor) {
+                const { doc } = editor.state;
+                doc.descendants((node, pos) => {
+                    node.marks.forEach((mark) => {
+                        if (mark.type.name === 'commentMark' && mark.attrs.commentId === threadId) {
+                            editor.commands.setTextSelection({ from: pos, to: pos + node.nodeSize });
+                            editor.commands.setCommentMark(threadId);
+                        }
+                    });
+                });
+            }
+
+            const statusText = status === 'addressed' ? 'Addressed' : status === 'dismissed' ? 'Dismissed' : 'Reopened';
+            toast.success(`Comment ${statusText}`);
+        } catch (error) {
+            console.error('Failed to update comment:', error);
+            toast.error('Failed to Update Comment');
+        }
+    };
+
     if (!editor) {
         return null;
     }
@@ -306,7 +499,11 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
             {/* Section Content with color differentiation */}
             <div className="transition-colors">
                 {/* Bubble Menu Toolbar */}
-                <BubbleMenuToolbar editor={editor} onAIAction={handleAIAction} />
+                <BubbleMenuToolbar
+                    editor={editor}
+                    onAIAction={handleAIAction}
+                    onComment={handleComment}
+                />
 
                 <EditorContent
                     editor={editor}
@@ -343,6 +540,22 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                     }}
                 />
             )}
+
+            {/* Comment Popover */}
+            <CommentPopover
+                isOpen={showCommentPopover}
+                onOpenChange={setShowCommentPopover}
+                position={commentPosition}
+                selectedText={commentSelection?.text}
+                onCreateComment={handleCreateComment}
+                threads={comments}
+                teamMembers={mockTeamMembers}
+                onReply={handleReply}
+                onDelete={handleDeleteComment}
+                onDeleteReply={handleDeleteReply}
+                onResolve={handleResolveComment}
+                currentUserId="user-current"
+            />
 
             <style jsx global>{`
                 .ProseMirror {
@@ -402,6 +615,28 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
 
                 .ProseMirror em {
                     font-style: italic;
+                }
+
+                /* Comment highlighting */
+                .comment-highlight {
+                    background-color: #fef3c7;
+                    border-bottom: 2px solid #f59e0b;
+                    cursor: pointer;
+                    transition: all 0.2s ease;
+                }
+
+                .comment-highlight:hover {
+                    background-color: #fde68a;
+                }
+
+                .comment-highlight[data-comment-status="addressed"] {
+                    background-color: #d1fae5;
+                    border-bottom-color: #10b981;
+                }
+
+                .comment-highlight[data-comment-status="dismissed"] {
+                    background-color: #f3f4f6;
+                    border-bottom-color: #9ca3af;
                 }
             `}</style>
         </div>
