@@ -17,14 +17,16 @@ import {
     Minimize2,
     AlertCircle,
     Star,
+    MessageSquare,
 } from 'lucide-react';
 
 interface BubbleMenuToolbarProps {
     editor: Editor;
     onAIAction?: (action: string, selectedText: string) => void;
+    onComment?: (selectedText: string, from: number, to: number) => void;
 }
 
-export function BubbleMenuToolbar({ editor, onAIAction }: BubbleMenuToolbarProps) {
+export function BubbleMenuToolbar({ editor, onAIAction, onComment }: BubbleMenuToolbarProps) {
     const [show, setShow] = useState(false);
     const [position, setPosition] = useState({ top: 0, left: 0 });
     const menuRef = useRef<HTMLDivElement>(null);
@@ -35,6 +37,15 @@ export function BubbleMenuToolbar({ editor, onAIAction }: BubbleMenuToolbarProps
 
         if (onAIAction && selectedText) {
             onAIAction(action, selectedText);
+        }
+    };
+
+    const handleComment = () => {
+        const { from, to } = editor.state.selection;
+        const selectedText = editor.state.doc.textBetween(from, to, ' ');
+
+        if (onComment && selectedText) {
+            onComment(selectedText, from, to);
         }
     };
 
@@ -99,6 +110,19 @@ export function BubbleMenuToolbar({ editor, onAIAction }: BubbleMenuToolbarProps
                 <HelpCircle className="h-3.5 w-3.5" />
                 <span className="text-xs">Explain</span>
             </Button>
+
+            {onComment && (
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleComment}
+                    className="h-8 px-2 text-white hover:bg-slate-800 gap-1.5"
+                    title="Add comment"
+                >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    <span className="text-xs">Comment</span>
+                </Button>
+            )}
 
             <div className="w-px h-6 bg-slate-700 mx-1" />
 
