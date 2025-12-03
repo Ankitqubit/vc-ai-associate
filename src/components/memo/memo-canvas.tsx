@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useMemo } from '@/lib/contexts/memo-context';
 import { MemoEditor } from './MemoEditor';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, X, FileText, Download, Share2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, X, FileText, Download, Share2, ChevronRight, History } from 'lucide-react';
 import { Deal } from '@/lib/types';
+import { VersionHistoryDrawer } from './versions/VersionHistoryDrawer';
 
 interface MemoCanvasProps {
     deal: Deal;
@@ -14,6 +15,7 @@ interface MemoCanvasProps {
 
 export function MemoCanvas({ deal, onClose }: MemoCanvasProps) {
     const { memo, isGenerating } = useMemo();
+    const [isVersionHistoryOpen, setIsVersionHistoryOpen] = useState(false);
 
     // Close on escape key
     useEffect(() => {
@@ -55,6 +57,16 @@ export function MemoCanvas({ deal, onClose }: MemoCanvasProps) {
                 <div className="flex items-center gap-2">
                     {memo && (
                         <>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setIsVersionHistoryOpen(true)}
+                                className="h-8 text-slate-600 hover:text-slate-900"
+                                title="Version History"
+                            >
+                                <History className="h-4 w-4 mr-1.5" />
+                                History
+                            </Button>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -139,6 +151,16 @@ export function MemoCanvas({ deal, onClose }: MemoCanvasProps) {
                     </div>
                 )}
             </div>
+
+            {/* Version History Drawer */}
+            {memo && (
+                <VersionHistoryDrawer
+                    isOpen={isVersionHistoryOpen}
+                    onClose={() => setIsVersionHistoryOpen(false)}
+                    memoId={memo.id}
+                    currentVersion={memo.currentVersion}
+                />
+            )}
         </div>
     );
 }
