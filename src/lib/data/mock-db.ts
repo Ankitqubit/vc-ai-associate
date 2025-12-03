@@ -600,3 +600,87 @@ export const updateMemoSection = (memoId: string, sectionId: string, content: st
 export const getMemoTemplate = (): MemoTemplate => {
     return defaultMemoTemplate;
 };
+
+// ============================================
+// VERSION HISTORY FUNCTIONS
+// ============================================
+
+/**
+ * Create a new version snapshot of a memo
+ */
+export const saveMemoVersion = (memoId: string, changeDescription?: string): boolean => {
+    const memo = mockMemos.find(m => m.id === memoId);
+    if (!memo) return false;
+
+    const newVersion = {
+        id: `version-${Date.now()}`,
+        memoId: memo.id,
+        versionNumber: memo.versions.length + 1,
+        sections: JSON.parse(JSON.stringify(memo.sections)), // Deep copy
+        createdAt: new Date().toISOString(),
+        createdBy: {
+            name: 'Human User',
+            isAi: false,
+        },
+        changeDescription,
+    };
+
+    memo.versions.push(newVersion);
+    memo.currentVersion = newVersion.versionNumber;
+    memo.updatedAt = new Date().toISOString();
+
+    return true;
+};
+
+/**
+ * Get all versions for a memo
+ */
+export const getMemoVersions = (memoId: string) => {
+    const memo = mockMemos.find(m => m.id === memoId);
+    if (!memo) return [];
+
+    return memo.versions;
+};
+
+/**
+ * Get a specific version by ID
+ */
+export const getMemoVersionById = (memoId: string, versionId: string) => {
+    const memo = mockMemos.find(m => m.id === memoId);
+    if (!memo) return undefined;
+
+    return memo.versions.find(v => v.id === versionId);
+};
+
+/**
+ * Restore a previous version
+ */
+export const restoreMemoVersion = (memoId: string, versionId: string): boolean => {
+    const memo = mockMemos.find(m => m.id === memoId);
+    if (!memo) return false;
+
+    const version = memo.versions.find(v => v.id === versionId);
+    if (!version) return false;
+
+    // Create a new version before restoring (so we don't lose current state)
+    saveMemoVersion(memoId, `Auto-save before restoring v${version.versionNumber}`);
+
+    // Restore sections from the version
+    memo.sections = JSON.parse(JSON.stringify(version.sections)); // Deep copy
+
+    // Update all sections to mark as restored
+    memo.sections.forEach(section => {
+        section.lastEditedBy = {
+            name: 'Human User',
+            isAi: false,
+            timestamp: new Date().toISOString(),
+        };
+    });
+
+    // Create a new version for the restore action
+    saveMemoVersion(memoId, `Restored from v${version.versionNumber}`);
+
+    memo.updatedAt = new Date().toISOString();
+
+    return true;
+};

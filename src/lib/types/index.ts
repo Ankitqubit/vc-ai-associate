@@ -146,6 +146,21 @@ export interface MemoVersion {
   changeDescription?: string; // "Regenerated risks section"
 }
 
+export interface VersionDiff {
+  sectionId: string;
+  sectionTitle: string;
+  type: 'added' | 'removed' | 'modified' | 'unchanged';
+  oldContent?: string;
+  newContent?: string;
+  changes: DiffChange[];
+}
+
+export interface DiffChange {
+  type: 'add' | 'remove' | 'unchanged';
+  value: string;
+  lineNumber?: number;
+}
+
 export interface MemoTemplate {
   id: string;
   name: string;
