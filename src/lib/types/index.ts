@@ -198,7 +198,7 @@ export interface InvestmentMemo {
 
 // Comment and Collaboration Types
 
-export type CommentStatus = 'open' | 'addressed' | 'dismissed';
+export type CommentStatus = 'open' | 'resolved';
 
 export interface CommentMention {
   userId: string;

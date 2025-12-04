@@ -59,6 +59,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         to: number;
     } | null>(null);
     const [commentPosition, setCommentPosition] = useState({ top: 0, left: 0 });
+    const [activeCommentThreads, setActiveCommentThreads] = useState<CommentThread[]>([]);
 
     const editor = useEditor({
         immediatelyRender: false,
@@ -127,6 +128,73 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
             }, 100);
         }
     }, [section.content, editor]);
+
+    // Add click handlers and hover tooltips to comment highlights (Google Docs-style UX)
+    useEffect(() => {
+        if (!editor) return;
+
+        const editorElement = editor.view.dom;
+
+        const handleCommentClick = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+
+            // Check if clicked element has comment mark
+            if (target.classList.contains('comment-highlight')) {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const commentId = target.getAttribute('data-comment-id');
+                if (!commentId) return;
+
+                // Find the comment thread(s) for this ID
+                const threadForId = comments.filter(c => c.id === commentId);
+                if (threadForId.length === 0) return;
+
+                // Get position for popover
+                const rect = target.getBoundingClientRect();
+                setCommentPosition({
+                    top: rect.bottom + window.scrollY + 10,
+                    left: rect.left + window.scrollX
+                });
+
+                // Show existing threads (not new comment mode)
+                setCommentSelection(null);
+                setActiveCommentThreads(threadForId);
+                setShowCommentPopover(true);
+            }
+        };
+
+        // Add tooltip data attributes for hover preview
+        const updateTooltips = () => {
+            const commentElements = editorElement.querySelectorAll('.comment-highlight');
+            commentElements.forEach((el) => {
+                const commentId = el.getAttribute('data-comment-id');
+                if (!commentId) return;
+
+                const threadForId = comments.filter(c => c.id === commentId);
+                if (threadForId.length === 0) return;
+
+                const thread = threadForId[0];
+                const count = threadForId.length;
+                const preview = thread.content.length > 60
+                    ? thread.content.substring(0, 60) + '...'
+                    : thread.content;
+
+                const tooltipText = count > 1
+                    ? `${count} comments - Click to view`
+                    : `${thread.author.name}: ${preview}`;
+
+                el.setAttribute('data-comment-tooltip', tooltipText);
+            });
+        };
+
+        updateTooltips();
+        editorElement.addEventListener('click', handleCommentClick);
+
+        return () => {
+            editorElement.removeEventListener('click', handleCommentClick);
+        };
+    }, [editor, comments]);
 
     // Handle AI actions from toolbar
     const handleAIAction = async (action: string, selectedText: string) => {
@@ -298,6 +366,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         });
 
         setCommentSelection({ text: selectedText, from, to });
+        setActiveCommentThreads([]); // New comment mode
         setShowCommentPopover(true);
     };
 
@@ -393,7 +462,20 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
         try {
             // Remove comment mark from editor
             if (editor) {
-                editor.chain().focus().unsetCommentMark(threadId).run();
+                const { doc, tr } = editor.state;
+
+                // Find and remove all marks with this commentId
+                doc.descendants((node, pos) => {
+                    node.marks.forEach((mark) => {
+                        if (mark.type.name === 'commentMark' && mark.attrs.commentId === threadId) {
+                            const from = pos;
+                            const to = pos + node.nodeSize;
+                            tr.removeMark(from, to, editor.schema.marks.commentMark);
+                        }
+                    });
+                });
+
+                editor.view.dispatch(tr);
             }
 
             setComments((prev) => prev.filter((comment) => comment.id !== threadId));
@@ -444,20 +526,34 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 )
             );
 
-            // Update comment mark status in editor
+            // Update comment mark status attribute in editor
             if (editor) {
-                const { doc } = editor.state;
+                const { doc, tr } = editor.state;
+                let updated = false;
+
                 doc.descendants((node, pos) => {
                     node.marks.forEach((mark) => {
                         if (mark.type.name === 'commentMark' && mark.attrs.commentId === threadId) {
-                            editor.commands.setTextSelection({ from: pos, to: pos + node.nodeSize });
-                            editor.commands.setCommentMark(threadId);
+                            // Remove old mark and add new mark with updated status
+                            const from = pos;
+                            const to = pos + node.nodeSize;
+
+                            tr.removeMark(from, to, editor.schema.marks.commentMark);
+                            tr.addMark(from, to, editor.schema.marks.commentMark.create({
+                                commentId: threadId,
+                                commentStatus: status
+                            }));
+                            updated = true;
                         }
                     });
                 });
+
+                if (updated) {
+                    editor.view.dispatch(tr);
+                }
             }
 
-            const statusText = status === 'addressed' ? 'Addressed' : status === 'dismissed' ? 'Dismissed' : 'Reopened';
+            const statusText = status === 'resolved' ? 'Resolved' : 'Reopened';
             toast.success(`Comment ${statusText}`);
         } catch (error) {
             console.error('Failed to update comment:', error);
@@ -548,7 +644,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 position={commentPosition}
                 selectedText={commentSelection?.text}
                 onCreateComment={handleCreateComment}
-                threads={comments}
+                threads={activeCommentThreads}
                 teamMembers={mockTeamMembers}
                 onReply={handleReply}
                 onDelete={handleDeleteComment}
@@ -623,20 +719,61 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                     border-bottom: 2px solid #f59e0b;
                     cursor: pointer;
                     transition: all 0.2s ease;
+                    position: relative;
                 }
 
                 .comment-highlight:hover {
                     background-color: #fde68a;
                 }
 
-                .comment-highlight[data-comment-status="addressed"] {
-                    background-color: #d1fae5;
-                    border-bottom-color: #10b981;
+                /* Hover tooltip preview (Google Docs-style) */
+                .comment-highlight[data-comment-tooltip]:hover::after {
+                    content: attr(data-comment-tooltip);
+                    position: absolute;
+                    bottom: calc(100% + 8px);
+                    left: 0;
+                    z-index: 1000;
+                    padding: 8px 12px;
+                    background-color: #1f2937;
+                    color: white;
+                    font-size: 13px;
+                    line-height: 1.4;
+                    border-radius: 6px;
+                    white-space: nowrap;
+                    max-width: 300px;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+                    animation: tooltipFadeIn 0.15s ease-out;
+                    pointer-events: none;
                 }
 
-                .comment-highlight[data-comment-status="dismissed"] {
-                    background-color: #f3f4f6;
-                    border-bottom-color: #9ca3af;
+                .comment-highlight[data-comment-tooltip]:hover::before {
+                    content: '';
+                    position: absolute;
+                    bottom: calc(100% + 2px);
+                    left: 12px;
+                    z-index: 1000;
+                    border: 6px solid transparent;
+                    border-top-color: #1f2937;
+                    pointer-events: none;
+                }
+
+                @keyframes tooltipFadeIn {
+                    from {
+                        opacity: 0;
+                        transform: translateY(4px);
+                    }
+                    to {
+                        opacity: 1;
+                        transform: translateY(0);
+                    }
+                }
+
+                .comment-highlight[data-comment-status="resolved"] {
+                    background-color: #d1fae5;
+                    border-bottom-color: #10b981;
+                    opacity: 0.8;
                 }
             `}</style>
         </div>

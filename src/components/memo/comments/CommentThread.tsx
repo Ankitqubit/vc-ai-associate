@@ -81,31 +81,7 @@ export function CommentThread({
     });
   };
 
-  const getStatusBadge = () => {
-    switch (thread.status) {
-      case 'addressed':
-        return (
-          <Badge variant="outline" className="gap-1 text-green-700 bg-green-50 border-green-200">
-            <CheckCircle className="h-3 w-3" />
-            Addressed
-          </Badge>
-        );
-      case 'dismissed':
-        return (
-          <Badge variant="outline" className="gap-1 text-gray-600 bg-gray-50 border-gray-200">
-            <XCircle className="h-3 w-3" />
-            Dismissed
-          </Badge>
-        );
-      default:
-        return (
-          <Badge variant="outline" className="gap-1">
-            <MessageSquare className="h-3 w-3" />
-            Open
-          </Badge>
-        );
-    }
-  };
+  // Removed status badge - color indicates status now
 
   return (
     <div className={cn('group', className)}>
@@ -138,7 +114,6 @@ export function CommentThread({
               </span>
             )}
             <span className="text-xs text-muted-foreground">{timeAgo}</span>
-            {getStatusBadge()}
 
             {/* Actions Menu */}
             <DropdownMenu>
@@ -154,15 +129,12 @@ export function CommentThread({
               <DropdownMenuContent align="end">
                 {onResolve && (
                   <>
-                    <DropdownMenuItem onClick={() => handleResolve('addressed')}>
-                      <CheckCircle className="h-3 w-3 mr-2" />
-                      Mark as addressed
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleResolve('dismissed')}>
-                      <XCircle className="h-3 w-3 mr-2" />
-                      Dismiss
-                    </DropdownMenuItem>
-                    {thread.status !== 'open' && (
+                    {thread.status === 'open' ? (
+                      <DropdownMenuItem onClick={() => handleResolve('resolved')}>
+                        <CheckCircle className="h-3 w-3 mr-2" />
+                        Resolve
+                      </DropdownMenuItem>
+                    ) : (
                       <DropdownMenuItem onClick={() => handleResolve('open')}>
                         <MessageSquare className="h-3 w-3 mr-2" />
                         Reopen
