@@ -151,6 +151,9 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const handleSubmit = async () => {
         if (!inputValue.trim() && pendingFiles.length === 0) return;
 
+        // Set chat as active when first message is sent
+        setIsChatActive(true);
+
         // Build message content
         let messageContent = inputValue || "Here's a file";
 
@@ -556,43 +559,45 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     onChange={handleFileInputChange}
                 />
 
-                {/* Chat Messages Area - Flex-1 with scroll */}
-                <div className="flex-1 overflow-y-auto py-6">
-                    <div className="space-y-4">
-                        {visibleMessages.map((msg, index) => {
-                            const content = renderMessageContent(msg);
-                            if (!content) return null;
+                {/* Chat Messages Area - Only shown when there are messages or AI is responding */}
+                {(visibleMessages.length > 0 || isLoading) && (
+                    <div className="flex-1 overflow-y-auto py-6">
+                        <div className="space-y-4">
+                            {visibleMessages.map((msg, index) => {
+                                const content = renderMessageContent(msg);
+                                if (!content) return null;
 
-                            const isUI = !(msg as any).content && ((msg as any).ui || (msg as any).type === "ActionExecutionMessage" || (msg as any).name);
+                                const isUI = !(msg as any).content && ((msg as any).ui || (msg as any).type === "ActionExecutionMessage" || (msg as any).name);
 
-                            return (
-                                <div
-                                    key={msg.id || index}
-                                    className={cn(
-                                        "flex w-full animate-in slide-in-from-bottom-2 duration-300",
-                                        isUserMessage(msg) ? "justify-end" : "justify-start"
-                                    )}
-                                >
-                                    {isUI ? (
-                                        <div className="w-full max-w-md">
-                                            {content}
-                                        </div>
-                                    ) : (
-                                        <div className={cn(
-                                            "max-w-[75%] rounded-2xl px-5 py-3.5 text-sm shadow-sm relative",
-                                            isUserMessage(msg)
-                                                ? "bg-indigo-600 text-white rounded-br-md"
-                                                : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
-                                        )}>
-                                            {content}
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                        {isLoading && <AIThinking context={getThinkingContext()} />}
+                                return (
+                                    <div
+                                        key={msg.id || index}
+                                        className={cn(
+                                            "flex w-full animate-in slide-in-from-bottom-2 duration-300",
+                                            isUserMessage(msg) ? "justify-end" : "justify-start"
+                                        )}
+                                    >
+                                        {isUI ? (
+                                            <div className="w-full max-w-md">
+                                                {content}
+                                            </div>
+                                        ) : (
+                                            <div className={cn(
+                                                "max-w-[75%] rounded-2xl px-5 py-3.5 text-sm shadow-sm relative",
+                                                isUserMessage(msg)
+                                                    ? "bg-indigo-600 text-white rounded-br-md"
+                                                    : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
+                                            )}>
+                                                {content}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                            {isLoading && <AIThinking context={getThinkingContext()} />}
+                        </div>
                     </div>
-                </div>
+                )}
 
                 {/* Footer - Fixed at bottom with suggestions + input */}
                 <div className="flex-shrink-0 pb-6 space-y-3">
@@ -651,7 +656,6 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
                             onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                            onFocus={() => setIsChatActive(true)}
                             placeholder="Ask anything about your deals..."
                             className="flex-1 bg-transparent border-none focus:ring-0 text-lg text-slate-900 placeholder:text-slate-400 py-3 px-2"
                             disabled={isLoading || isDictating}
