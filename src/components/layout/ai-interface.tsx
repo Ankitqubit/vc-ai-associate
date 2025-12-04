@@ -23,6 +23,7 @@ import { useSelection } from "@/lib/contexts/selection-context";
 import { ContextCard } from "@/components/chat/ContextCard";
 import { FileUploadZone } from "@/components/deals/FileUploadZone";
 import { ChatFileAttachment } from "@/components/chat/ChatFileAttachment";
+import { AIThinking } from "@/components/ui/AIThinking";
 import { PendingFilePreview } from "@/components/chat/PendingFilePreview";
 
 // Wrapper component to fetch deals for comparison
@@ -492,15 +493,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 </div>
                             );
                         })}
-                        {isLoading && (
-                            <div className="flex justify-start animate-in fade-in duration-300">
-                                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-md px-5 py-3.5 shadow-md flex items-center space-x-1.5">
-                                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                    <div className="w-2 h-2 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                </div>
-                            </div>
-                        )}
+                        {isLoading && <AIThinking context="processing" />}
                     </div>
                 </div>
 
@@ -731,15 +724,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 </div>
                             );
                         })}
-                        {isLoading && (
-                            <div className="flex justify-start animate-in fade-in duration-300">
-                                <div className="bg-white border border-slate-100 rounded-2xl rounded-bl-none px-4 py-3 shadow-sm flex items-center space-x-1">
-                                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                    <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                                </div>
-                            </div>
-                        )}
+                        {isLoading && <AIThinking context="processing" />}
                     </div>
                 </ScrollArea>
             </div>
