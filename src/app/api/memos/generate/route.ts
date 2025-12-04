@@ -16,17 +16,17 @@ function generateMockContent(sectionTitle: string, deal: any): string {
     const mockContent: Record<string, string> = {
         'Executive Summary': `<p>${deal.company.name} is a ${deal.company.description} The company is currently at ${deal.metrics[0].value} in MRR<cite id="cite-exec-1"></cite> with ${deal.metrics[0].trend || 'steady growth'}. Based on our thesis criteria<cite id="cite-exec-2"></cite>, the deal scores ${deal.fitScore.score}/100, indicating ${deal.fitScore.score >= 80 ? 'strong' : deal.fitScore.score >= 60 ? 'moderate' : 'weak'} alignment. The team consists of ${deal.company.teamSize} members with relevant industry experience. We ${deal.fitScore.score >= 75 ? 'recommend proceeding to deeper diligence' : 'suggest further evaluation before proceeding'}.</p>`,
 
-        'Company Overview': `${deal.company.name} was founded in ${deal.company.foundingDate} and is based in ${deal.company.location}. The company operates in the ${deal.company.description.includes('B2B') ? 'B2B SaaS' : 'B2C'} space with a current team of ${deal.company.teamSize} employees. The founding team brings significant expertise from previous roles at leading technology companies.`,
+        'Company Overview': `<p>${deal.company.name} was founded in ${deal.company.foundingDate}<cite id="cite-co-1"></cite> and is based in ${deal.company.location}. The company operates in the ${deal.company.description.includes('B2B') ? 'B2B SaaS' : 'B2C'} space with a current team of ${deal.company.teamSize} employees<cite id="cite-co-2"></cite>. The founding team brings significant expertise from previous roles at leading technology companies.</p>`,
 
-        'Problem & Solution': `The market faces significant challenges in operational efficiency and scalability. ${deal.company.name} addresses this by providing an automated platform that reduces manual work by up to 60%. The solution leverages modern technology to streamline workflows and improve productivity for enterprise customers.`,
+        'Problem & Solution': `<p>The market faces significant challenges in operational efficiency and scalability. ${deal.company.name} addresses this by providing an automated platform that reduces manual work by up to 60%<cite id="cite-ps-1"></cite>. The solution leverages modern technology to streamline workflows and improve productivity for enterprise customers.</p>`,
 
         'Market Analysis': `The total addressable market (TAM) is estimated at $50B globally, with a serviceable addressable market (SAM) of $12B in North America. The market is growing at 25% CAGR, driven by digital transformation initiatives and increasing demand for automation. Key market trends include the shift to cloud-based solutions and the need for real-time analytics.`,
 
         'Product': `The product is a cloud-based platform that integrates with existing enterprise systems. Key features include automated workflow management, real-time analytics dashboards, and AI-powered optimization. The technical architecture is built on modern microservices, ensuring scalability and reliability. Current customers report 40% improvement in operational efficiency.`,
 
-        'Traction & Metrics': `Current MRR stands at ${deal.metrics[0].value} with ${deal.metrics[0].trend || 'consistent growth'}. The company has acquired 45 enterprise customers with an average contract value of $25K annually. Customer retention rate is 95%, indicating strong product-market fit. Month-over-month growth has averaged 15% for the past 6 months.`,
+        'Traction & Metrics': `<p>Current MRR stands at ${deal.metrics[0].value}<cite id="cite-tm-1"></cite> with ${deal.metrics[0].trend || 'consistent growth'}. The company has acquired 45 enterprise customers with an average contract value of $25K annually<cite id="cite-tm-2"></cite>. Customer retention rate is 95%, indicating strong product-market fit. Month-over-month growth has averaged 15% for the past 6 months.</p>`,
 
-        'Team': `The founding team consists of experienced operators with complementary skill sets. The CEO previously led product at a Series C SaaS company. The CTO has 15 years of engineering experience at major tech companies. The team has successfully built and scaled products before, bringing valuable learnings to this venture. Current gaps include sales leadership, which they plan to fill with the Series A funding.`,
+        'Team': `<p>The founding team consists of experienced operators with complementary skill sets. The CEO previously led product at a Series C SaaS company<cite id="cite-team-1"></cite>. The CTO has 15 years of engineering experience at major tech companies<cite id="cite-team-2"></cite>. The team has successfully built and scaled products before, bringing valuable learnings to this venture. Current gaps include sales leadership, which they plan to fill with the Series A funding.</p>`,
 
         'Business Model': `${deal.company.name} operates on an annual subscription model with tiered pricing based on company size. Average contract value is $25K with 20% year-over-year increases. The sales cycle averages 45 days for mid-market and 90 days for enterprise. Customer acquisition cost (CAC) is ${deal.metrics.find(m => m.name === 'CAC')?.value || '$15K'} with an LTV/CAC ratio of 4.5x.`,
 
@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
                 // Create mock citations for this section
                 const citations: Citation[] = [];
 
-                // Add citation for Executive Summary
+                // Add citations based on section
                 if (templateSection.title === 'Executive Summary') {
                     citations.push({
                         id: 'cite-exec-1',
@@ -96,6 +96,66 @@ export async function POST(req: NextRequest) {
                         source: 'Call with Sarah Chen',
                         content: 'The deal aligns perfectly with our B2B SaaS thesis, particularly in the logistics automation space.',
                         timestamp: '12:30',
+                        confidence: 'high',
+                    });
+                } else if (templateSection.title === 'Company Overview') {
+                    citations.push({
+                        id: 'cite-co-1',
+                        type: 'deck',
+                        source: `${deal.company.name} Pitch Deck`,
+                        content: `Founded in ${deal.company.foundingDate} by experienced entrepreneurs from leading tech companies.`,
+                        slideNumber: 3,
+                        confidence: 'high',
+                    });
+                    citations.push({
+                        id: 'cite-co-2',
+                        type: 'deck',
+                        source: `${deal.company.name} Pitch Deck`,
+                        content: `Team has grown to ${deal.company.teamSize} employees across engineering, product, and sales.`,
+                        slideNumber: 12,
+                        confidence: 'high',
+                    });
+                } else if (templateSection.title === 'Problem & Solution') {
+                    citations.push({
+                        id: 'cite-ps-1',
+                        type: 'deck',
+                        source: `${deal.company.name} Pitch Deck`,
+                        content: 'Our platform reduces manual work by 60%, saving enterprises an average of 200 hours per month.',
+                        slideNumber: 6,
+                        confidence: 'high',
+                    });
+                } else if (templateSection.title === 'Traction & Metrics') {
+                    citations.push({
+                        id: 'cite-tm-1',
+                        type: 'deck',
+                        source: `${deal.company.name} Pitch Deck`,
+                        content: `Current MRR: ${deal.metrics[0].value}, growing at ${deal.metrics[0].trend || '15% MoM'}`,
+                        slideNumber: 8,
+                        confidence: 'high',
+                    });
+                    citations.push({
+                        id: 'cite-tm-2',
+                        type: 'transcript',
+                        source: 'Call with CEO',
+                        content: '45 enterprise customers with ACV of $25K. Customer retention is 95%, which is best in class.',
+                        timestamp: '18:45',
+                        confidence: 'high',
+                    });
+                } else if (templateSection.title === 'Team') {
+                    citations.push({
+                        id: 'cite-team-1',
+                        type: 'deck',
+                        source: `${deal.company.name} Pitch Deck`,
+                        content: 'CEO: Former VP of Product at Series C SaaS company, led product from $10M to $100M ARR.',
+                        slideNumber: 11,
+                        confidence: 'high',
+                    });
+                    citations.push({
+                        id: 'cite-team-2',
+                        type: 'transcript',
+                        source: 'Call with CTO',
+                        content: 'CTO has 15 years at Google and Amazon, built distributed systems serving millions of users.',
+                        timestamp: '08:20',
                         confidence: 'high',
                     });
                 }
