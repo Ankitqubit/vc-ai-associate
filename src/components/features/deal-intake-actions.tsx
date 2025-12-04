@@ -20,7 +20,17 @@ export function DealIntakeActions() {
     // Simulate deck analysis
     useCopilotAction({
         name: "analyze_pitch_deck",
-        description: "Analyze an uploaded pitch deck and extract company information, metrics, and key details. Call this when the user explicitly asks to analyze a deck.",
+        description: `🚨 STEP 2 ONLY: Analyze pitch deck after user confirms they want analysis.
+
+❌ DO NOT CALL THIS IF:
+- User just uploaded a file and you haven't asked them yet
+- This is your first response after seeing [ATTACHED FILE: ...]
+
+✅ ONLY CALL THIS WHEN:
+- User explicitly said "yes", "analyze it", "sure", etc. in response to your suggestion
+- You already asked: "Would you like me to analyze this deck?"
+
+This is STEP 2 of the workflow.`,
         parameters: [
             {
                 name: "fileName",
@@ -53,19 +63,20 @@ Would you like me to create a deal for this company?`;
     // Create a new deal from extracted deck data
     useCopilotAction({
         name: "create_deal_from_deck",
-        description: `Create a new deal from pitch deck data and display the deal card in the chat.
+        description: `🚨 STEP 3 ONLY: Create deal after user explicitly confirms they want to create it.
 
-WHEN TO CALL THIS:
-- After analyzing a pitch deck with analyze_pitch_deck
-- User confirms with "yes", "create it", "go ahead", or similar affirmative response
-- You have the company information from the analysis
+❌ DO NOT CALL THIS ACTION IF:
+- User just uploaded a file (they haven't confirmed analysis yet)
+- You haven't called analyze_pitch_deck yet
+- User hasn't explicitly said "yes" to creating the deal
+- This is your first response after seeing a file
 
-CRITICAL: This action will:
-1. Create the deal in the system
-2. Automatically render a beautiful DealCard component with NEW badge
-3. Display the card directly in the chat (don't describe it, let the render function show it)
+✅ ONLY CALL THIS ACTION WHEN:
+1. You already called analyze_pitch_deck AND it completed
+2. You asked "Would you like me to create a deal for [Company]?"
+3. User explicitly confirmed with "yes", "create it", "go ahead", etc.
 
-After calling this action, DO NOT say "The deal has been created". Let the action's result speak for itself - it will show the success message AND the deal card automatically.`,
+This is STEP 3 of the workflow. Do not skip steps!`,
         parameters: [
             {
                 name: "companyName",
