@@ -22,7 +22,7 @@ export function CommentActions() {
     // Action: Add Comment to Section
     useCopilotAction({
         name: "add_comment_to_section",
-        description: "IMPORTANT: You MUST call this action whenever the user asks to add a comment, leave a comment, comment on, or mention someone about any memo section. DO NOT just respond with text - actually execute this action. Use this to add a comment or discussion to a specific memo section. You can @mention team members by name. Available sections: executive_summary, company_overview, problem_solution, market_analysis, product, traction_metrics, team, business_model, competitive_landscape, thesis_fit, risks_concerns, open_questions, recommendation.",
+        description: "IMPORTANT: You MUST call this action whenever the user asks to add a comment, leave a comment, comment on, or mention someone about any memo section. DO NOT just respond with text - actually execute this action. Use this to add a comment or discussion to a specific memo section. You can @mention team members by name. Available sections: executive_summary, company_overview, problem_solution, market_analysis, product, traction_metrics, team, business_model, competitive_landscape, thesis_fit, risks_concerns, open_questions, recommendation.\n\nIMPORTANT - Two Comment Modes:\n1. INLINE COMMENTS (with highlighting): When user mentions specific text, numbers, phrases, or asks about particular content (e.g., 'comment on the TAM number', 'about the founding team background', 'the $50B market size'), you MUST extract that EXACT phrase from the section content and provide it as highlightedText. This creates a yellow highlight in the editor.\n2. SECTION COMMENTS (general feedback): For general section-level feedback without specific text (e.g., 'comment on Company Overview section', 'add concerns to Risks section'), leave highlightedText empty.",
         parameters: [
             {
                 name: "sectionType",
@@ -33,7 +33,7 @@ export function CommentActions() {
             {
                 name: "highlightedText",
                 type: "string",
-                description: "Specific text from the section to highlight (optional, for context)",
+                description: "EXACT text phrase from the section content to highlight. ONLY provide this when user mentions specific text/numbers/phrases. Extract the exact phrase from the section (e.g., if user says 'comment on the TAM estimate', extract '$50B' or 'TAM of $50B' from the content). Leave empty for general section comments. This will create a yellow highlight in the editor.",
                 required: false,
             },
             {
