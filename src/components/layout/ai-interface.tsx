@@ -93,6 +93,15 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         }
     }, [isLoading]);
 
+    // Helper function to format file size
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    };
+
     const handleSubmit = async () => {
         if (!inputValue.trim() && pendingFiles.length === 0) return;
 
@@ -114,6 +123,14 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                 size: file.size,
                 type: file.type,
             }));
+
+            // CRITICAL: Add file information to message content so AI can see it
+            const fileInfoText = pendingFiles.map(file =>
+                `[ATTACHED FILE: "${file.name}" (${formatFileSize(file.size)}, ${file.type})]`
+            ).join('\n');
+
+            // Append file info to message content
+            messageContent = `${messageContent}\n\n${fileInfoText}`;
 
             // Create a custom message object with files
             const messageWithFiles = new TextMessage({
