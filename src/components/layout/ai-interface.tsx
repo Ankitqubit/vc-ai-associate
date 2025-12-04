@@ -460,21 +460,6 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         />
                     )}
 
-                    {/* Pending Files Preview */}
-                    {pendingFiles.length > 0 && (
-                        <div className="px-6 pb-4 space-y-2">
-                            {pendingFiles.map((file, idx) => (
-                                <PendingFilePreview
-                                    key={`${file.name}-${idx}`}
-                                    file={file}
-                                    onRemove={() => {
-                                        setPendingFiles(prev => prev.filter((_, i) => i !== idx));
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    )}
-
                     {/* Quick Action Suggestions - Hidden when chat is active */}
                     <div className={cn(
                         "flex justify-center gap-3 transition-all duration-500 ease-in-out",
