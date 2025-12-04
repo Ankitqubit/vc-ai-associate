@@ -570,7 +570,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
     const isHumanContent = section.source === 'human' || section.source === 'mixed' || (section.source === 'ai' && wasEdited);
 
     return (
-        <div className="mb-8 relative group">
+        <div id={`section-${section.id}`} className="mb-8 relative group scroll-mt-20 transition-all duration-300 rounded-lg">
             {/* AI Processing Indicator */}
             {isAIProcessing && (
                 <div className="absolute top-0 right-0 flex items-center gap-2 text-xs text-indigo-600 bg-indigo-50 px-3 py-2 rounded-lg shadow-sm z-10 animate-in fade-in-0 slide-in-from-top-2 duration-200">

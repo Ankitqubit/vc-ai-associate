@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
-import { MessageSquare, CheckCircle2, Users, X, Reply } from 'lucide-react';
+import { MessageSquare, CheckCircle2, Users, X, Reply, FileText, MapPin } from 'lucide-react';
 import { CommentThread } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { cn } from '@/lib/utils';
@@ -123,15 +123,33 @@ interface CommentThreadCardProps {
 function CommentThreadCard({ thread, isExpanded, onToggle }: CommentThreadCardProps) {
     const isResolved = thread.status === 'resolved';
     const isAiAuthor = thread.author.isAi;
+    const hasHighlightedText = !!thread.textRange.text;
+
+    const handleClick = (e: React.MouseEvent) => {
+        // Toggle expansion
+        onToggle();
+
+        // Scroll to section
+        const sectionElement = document.getElementById(`section-${thread.sectionId}`);
+        if (sectionElement) {
+            sectionElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Add temporary highlight effect
+            sectionElement.classList.add('bg-blue-50', 'ring-2', 'ring-blue-300', 'ring-offset-2');
+            setTimeout(() => {
+                sectionElement.classList.remove('bg-blue-50', 'ring-2', 'ring-blue-300', 'ring-offset-2');
+            }, 2000);
+        }
+    };
 
     return (
         <Card
             className={cn(
-                "p-3 cursor-pointer transition-all hover:shadow-sm",
+                "p-3 cursor-pointer transition-all hover:shadow-sm hover:border-blue-300",
                 isResolved && "opacity-60 border-green-200 bg-green-50/30",
                 isAiAuthor && "border-blue-200 bg-blue-50/30"
             )}
-            onClick={onToggle}
+            onClick={handleClick}
         >
             {/* Thread Header */}
             <div className="flex items-start gap-2 mb-2">
@@ -165,12 +183,24 @@ function CommentThreadCard({ thread, isExpanded, onToggle }: CommentThreadCardPr
                         </span>
                     </div>
 
-                    {/* Highlighted Text */}
-                    {thread.textRange.text && (
-                        <div className="text-[11px] text-slate-600 bg-yellow-50 border border-yellow-200 rounded px-2 py-1 mb-2 italic">
-                            "{thread.textRange.text}"
-                        </div>
-                    )}
+                    {/* Comment Type Indicator & Highlighted Text */}
+                    <div className="flex items-start gap-1.5 mb-2">
+                        {thread.textRange.text ? (
+                            // Inline comment indicator
+                            <>
+                                <MapPin className="h-3 w-3 text-amber-500 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 text-[11px] text-slate-600 bg-yellow-50 border border-yellow-200 rounded px-2 py-1 italic">
+                                    "{thread.textRange.text}"
+                                </div>
+                            </>
+                        ) : (
+                            // Section comment indicator
+                            <div className="flex items-center gap-1 text-[10px] text-slate-500">
+                                <FileText className="h-3 w-3" />
+                                <span>Section comment</span>
+                            </div>
+                        )}
+                    </div>
 
                     {/* Comment Content */}
                     <p className={cn(
