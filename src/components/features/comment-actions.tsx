@@ -13,10 +13,16 @@ import { CommentAddedCard } from "@/components/copilot/CommentAddedCard";
 export function CommentActions() {
     const { memo, comments, setComments, teamMembers } = useMemo();
 
+    console.log('[CommentActions] Component mounted/rendered', {
+        hasMemo: !!memo,
+        commentCount: comments.length,
+        teamMemberCount: teamMembers.length,
+    });
+
     // Action: Add Comment to Section
     useCopilotAction({
         name: "add_comment_to_section",
-        description: "Add a comment or discussion to a specific memo section. Use this when the user asks to comment on a section, raise a concern, ask a question, or tag someone about a specific part of the memo. You can @mention team members by name. Available sections: executive_summary, company_overview, problem_solution, market_analysis, product, traction_metrics, team, business_model, competitive_landscape, thesis_fit, risks_concerns, open_questions, recommendation.",
+        description: "IMPORTANT: You MUST call this action whenever the user asks to add a comment, leave a comment, comment on, or mention someone about any memo section. DO NOT just respond with text - actually execute this action. Use this to add a comment or discussion to a specific memo section. You can @mention team members by name. Available sections: executive_summary, company_overview, problem_solution, market_analysis, product, traction_metrics, team, business_model, competitive_landscape, thesis_fit, risks_concerns, open_questions, recommendation.",
         parameters: [
             {
                 name: "sectionType",
@@ -49,7 +55,15 @@ export function CommentActions() {
             comment: string;
             mentionNames?: string[];
         }) => {
+            console.log('[CommentActions] add_comment_to_section called!', {
+                sectionType,
+                highlightedText,
+                comment,
+                mentionNames,
+            });
+
             if (!memo) {
+                console.log('[CommentActions] No memo found, returning error');
                 return "No memo is currently open. Please generate a memo first.";
             }
 
@@ -168,7 +182,7 @@ export function CommentActions() {
     // Action: Reply to Comment
     useCopilotAction({
         name: "reply_to_comment",
-        description: "Reply to an existing comment thread. Use this when the user asks to respond to someone's comment or continue a discussion.",
+        description: "IMPORTANT: You MUST call this action when the user asks to reply to a comment or respond to a comment. DO NOT just respond with text - actually execute this action. Use this to reply to an existing comment thread.",
         parameters: [
             {
                 name: "commentId",
@@ -292,7 +306,7 @@ export function CommentActions() {
     // Action: Resolve Comment
     useCopilotAction({
         name: "resolve_comment",
-        description: "Mark a comment thread as resolved or reopen it. Use this when a discussion has been addressed or needs to be reopened.",
+        description: "IMPORTANT: You MUST call this action when the user asks to resolve or reopen a comment. DO NOT just respond with text - actually execute this action. Use this to mark a comment thread as resolved or reopen it.",
         parameters: [
             {
                 name: "commentId",
