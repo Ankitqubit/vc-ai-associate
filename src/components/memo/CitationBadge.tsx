@@ -64,8 +64,7 @@ export function CitationBadge({ citation, number, onClick }: CitationBadgeProps)
                         "border border-blue-200 hover:border-blue-300",
                         "rounded transition-all",
                         "cursor-pointer",
-                        "align-super",
-                        "relative -top-0.5"
+                        "align-middle"
                     )}
                     onClick={(e) => {
                         e.preventDefault();
