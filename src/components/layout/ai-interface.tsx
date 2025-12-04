@@ -22,15 +22,8 @@ import { getDealById } from "@/lib/data/mock-db";
 import { useSelection } from "@/lib/contexts/selection-context";
 import { ContextCard } from "@/components/chat/ContextCard";
 import { FileUploadZone } from "@/components/deals/FileUploadZone";
-import { FilePreviewCard } from "@/components/deals/FilePreviewCard";
-
-interface AttachedFile {
-    file: File;
-    id: string;
-    uploadProgress: number;
-    status: 'uploading' | 'parsing' | 'success' | 'error';
-    errorMessage?: string;
-}
+import { ChatFileAttachment } from "@/components/chat/ChatFileAttachment";
+import { PendingFilePreview } from "@/components/chat/PendingFilePreview";
 
 // Wrapper component to fetch deals for comparison
 function DealComparisonWrapper({ dealIds }: { dealIds: string[] }) {
@@ -65,7 +58,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const [isVoiceListening, setIsVoiceListening] = useState(false);
     const [isAISpeaking, setIsAISpeaking] = useState(false);
     const [isChatActive, setIsChatActive] = useState(false);
-    const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+    const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,26 +94,50 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     }, [isLoading]);
 
     const handleSubmit = async () => {
-        if (!inputValue.trim()) return;
+        if (!inputValue.trim() && pendingFiles.length === 0) return;
 
-        // Build message content with context if available
-        let messageContent = inputValue;
+        // Build message content
+        let messageContent = inputValue || "Here's a file";
 
+        // Add context if available
         if (selectedText) {
             // Format context as quoted block (Perplexity-style)
             const quotedContext = `> ${selectedText.replace(/\n/g, '\n> ')}`;
             const sourceInfo = selectionSource ? `\n> *From: ${selectionSource}*` : '';
-            messageContent = `${quotedContext}${sourceInfo}\n\n${inputValue}`;
+            messageContent = `${quotedContext}${sourceInfo}\n\n${messageContent}`;
         }
 
-        appendMessage(new TextMessage({
-            content: messageContent,
-            role: Role.User,
-        }));
+        // If files attached, create message with file metadata
+        if (pendingFiles.length > 0) {
+            const fileMetadata = pendingFiles.map(file => ({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+            }));
 
+            // Create a custom message object with files
+            const messageWithFiles = new TextMessage({
+                content: messageContent,
+                role: Role.User,
+            });
+
+            // Store file metadata (we'll access this in rendering)
+            (messageWithFiles as any).files = fileMetadata;
+
+            appendMessage(messageWithFiles);
+
+            // Clear pending files
+            setPendingFiles([]);
+        } else {
+            // Normal message without files
+            appendMessage(new TextMessage({
+                content: messageContent,
+                role: Role.User,
+            }));
+        }
+
+        // Clear input and context
         setInputValue("");
-
-        // Clear context after sending
         if (selectedText) {
             clearSelection();
         }
@@ -144,83 +161,9 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
     // File upload handlers
     const handleFileDrop = (files: File[]) => {
-        const newFiles: AttachedFile[] = files.map(file => ({
-            file,
-            id: `${Date.now()}-${Math.random()}`,
-            uploadProgress: 0,
-            status: 'uploading' as const,
-        }));
-
-        setAttachedFiles(prev => [...prev, ...newFiles]);
+        // Only add to pending, don't process
+        setPendingFiles(prev => [...prev, ...files]);
         setIsDragging(false);
-
-        // Send initial acknowledgment message
-        if (newFiles.length > 0) {
-            const fileNames = newFiles.map(f => f.file.name).join(', ');
-            appendMessage(new TextMessage({
-                content: `📎 Received ${newFiles.length === 1 ? 'file' : `${newFiles.length} files`}: **${fileNames}**\n\nUploading and analyzing...`,
-                role: Role.Assistant,
-            }));
-        }
-
-        newFiles.forEach((attachedFile) => {
-            simulateUpload(attachedFile.id, attachedFile.file);
-        });
-    };
-
-    const simulateUpload = (fileId: string, file: File) => {
-        let progress = 0;
-        const interval = setInterval(() => {
-            progress += 10;
-            setAttachedFiles(prev =>
-                prev.map(f =>
-                    f.id === fileId
-                        ? { ...f, uploadProgress: progress }
-                        : f
-                )
-            );
-
-            if (progress >= 100) {
-                clearInterval(interval);
-
-                // Send parsing status message
-                setTimeout(() => {
-                    setAttachedFiles(prev =>
-                        prev.map(f =>
-                            f.id === fileId
-                                ? { ...f, status: 'parsing' }
-                                : f
-                        )
-                    );
-
-                    appendMessage(new TextMessage({
-                        content: `🔍 Analyzing **${file.name}**...\n\nExtracting company information, metrics, and key details from the deck.`,
-                        role: Role.Assistant,
-                    }));
-
-                    // Complete parsing and send analysis
-                    setTimeout(() => {
-                        setAttachedFiles(prev =>
-                            prev.map(f =>
-                                f.id === fileId
-                                    ? { ...f, status: 'success' }
-                                    : f
-                            )
-                        );
-
-                        // Send analysis results
-                        appendMessage(new TextMessage({
-                            content: `✅ **Analysis Complete: ${file.name}**\n\nI've extracted key information from the deck:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n🏢 **Industry**: B2B SaaS - Logistics Automation\n📅 **Founded**: 2023\n\nWould you like me to create a deal for this company? Just say "yes" if you'd like to proceed, or you can ask me questions or make corrections first.`,
-                            role: Role.Assistant,
-                        }));
-                    }, 2500);
-                }, 500);
-            }
-        }, 200);
-    };
-
-    const handleRemoveFile = (fileId: string) => {
-        setAttachedFiles(prev => prev.filter(f => f.id !== fileId));
     };
 
     const handlePaperclipClick = () => {
@@ -261,8 +204,32 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
     // Helper to render custom content based on message type or tool calls
     const renderMessageContent = (msg: any) => {
-        // 1. Handle Text Content
         const content = msg.content;
+        const files = msg.files || [];
+
+        // 1. Handle messages with files
+        if (files.length > 0) {
+            return (
+                <div className="space-y-2">
+                    {/* File attachments */}
+                    {files.map((file: any, idx: number) => (
+                        <ChatFileAttachment
+                            key={idx}
+                            fileName={file.name}
+                            fileSize={file.size}
+                            fileType={file.type}
+                        />
+                    ))}
+
+                    {/* Message text (if any) */}
+                    {content && content.trim().length > 0 && (
+                        <p className="leading-relaxed">{content}</p>
+                    )}
+                </div>
+            );
+        }
+
+        // 2. Handle Text Content
         if (typeof content === 'string' && content.trim().length > 0) {
             // Check if message contains quoted context (starts with >)
             const quoteMatch = content.match(/^((?:>.+(?:\n|$))+)\n*([\s\S]*)$/);
