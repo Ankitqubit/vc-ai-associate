@@ -610,22 +610,6 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         />
                     )}
 
-                    {/* Quick Action Suggestions - Hidden when chat is active */}
-                    <div className={cn(
-                        "flex justify-center gap-3 transition-all duration-500 ease-in-out",
-                        hasChatHistory ? "mb-0 h-0 opacity-0 overflow-hidden" : "mb-4 opacity-100"
-                    )}>
-                        {["Summarize recent deals", "Draft an investment memo", "Check market trends"].map((action) => (
-                            <button
-                                key={action}
-                                onClick={() => setInputValue(action)}
-                                className="text-sm text-slate-500 bg-white/50 hover:bg-white hover:text-indigo-600 px-4 py-2 rounded-full border border-slate-200/50 hover:border-indigo-100 transition-all shadow-sm"
-                            >
-                                {action}
-                            </button>
-                        ))}
-                    </div>
-
                     {/* Pending Files Preview */}
                     {pendingFiles.length > 0 && (
                         <div className="px-6 pb-4 space-y-2">
@@ -688,6 +672,22 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 )}
                             </Button>
                         </div>
+                    </div>
+
+                    {/* Quick Action Suggestions - Below input, hidden when chat is active */}
+                    <div className={cn(
+                        "flex justify-center gap-3 transition-all duration-500 ease-in-out",
+                        hasChatHistory ? "mt-0 h-0 opacity-0 overflow-hidden" : "mt-3 opacity-100"
+                    )}>
+                        {["Summarize recent deals", "Draft an investment memo", "Check market trends"].map((action) => (
+                            <button
+                                key={action}
+                                onClick={() => setInputValue(action)}
+                                className="text-sm text-slate-500 bg-white/50 hover:bg-white hover:text-indigo-600 px-4 py-2 rounded-full border border-slate-200/50 hover:border-indigo-100 transition-all shadow-sm"
+                            >
+                                {action}
+                            </button>
+                        ))}
                     </div>
                 </div>
             </div>
