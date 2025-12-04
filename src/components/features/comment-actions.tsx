@@ -4,6 +4,7 @@ import { useCopilotAction } from "@copilotkit/react-core";
 import { useMemo } from "@/lib/contexts/memo-context";
 import { CommentThread, CommentReply, TeamMember } from "@/lib/types";
 import { toast } from "sonner";
+import { CommentAddedCard } from "@/components/copilot/CommentAddedCard";
 
 /**
  * CopilotKit actions for AI to interact with memo comments
@@ -139,47 +140,16 @@ export function CommentActions() {
             };
         },
         render: ({ status, args, result }: any) => {
-            if (status === "inProgress") {
-                return (
-                    <div className="w-full max-w-md p-4 border border-border/50 rounded-lg bg-muted/30">
-                        <div className="flex items-center gap-3">
-                            <div className="relative w-8 h-8">
-                                <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping" />
-                                <div className="relative w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                    <span className="text-white text-sm">💬</span>
-                                </div>
-                            </div>
-                            <div>
-                                <p className="font-medium text-sm">Adding Comment...</p>
-                                <p className="text-xs text-muted-foreground">{args.sectionType}</p>
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            if (status === "complete" && result?.success) {
-                return (
-                    <div className="w-full max-w-md p-4 border border-blue-200/50 rounded-lg bg-blue-500/5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                <span className="text-white text-sm">💬</span>
-                            </div>
-                            <div className="flex-1">
-                                <p className="font-medium text-sm">Comment Added</p>
-                                <p className="text-xs text-muted-foreground">{result.sectionTitle}</p>
-                                {result.mentionedUsers?.length > 0 && (
-                                    <p className="text-xs text-blue-600 mt-1">
-                                        Mentioned: {result.mentionedUsers.join(', ')}
-                                    </p>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                );
-            }
-
-            return null;
+            return (
+                <CommentAddedCard
+                    sectionType={args.sectionType}
+                    sectionTitle={result?.sectionTitle}
+                    comment={args.comment}
+                    mentionedUsers={args.mentionNames || result?.mentionedUsers}
+                    status={status}
+                    result={result}
+                />
+            );
         },
     });
 
