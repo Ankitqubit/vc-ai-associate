@@ -48,7 +48,12 @@ export function CitationBadge({ citation, number, onClick }: CitationBadgeProps)
     };
 
     return (
-        <HoverCard open={isOpen} onOpenChange={setIsOpen}>
+        <HoverCard
+            open={isOpen}
+            onOpenChange={setIsOpen}
+            openDelay={200}
+            closeDelay={300}
+        >
             <HoverCardTrigger asChild>
                 <button
                     className={cn(
@@ -77,6 +82,8 @@ export function CitationBadge({ citation, number, onClick }: CitationBadgeProps)
                 align="start"
                 className="w-80 p-3 bg-white"
                 sideOffset={5}
+                onMouseEnter={() => setIsOpen(true)}
+                onMouseLeave={() => setIsOpen(false)}
             >
                 <div className="space-y-2">
                     {/* Source Header */}
