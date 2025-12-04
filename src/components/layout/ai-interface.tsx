@@ -210,7 +210,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
                         // Send analysis results
                         appendMessage(new TextMessage({
-                            content: `✅ **Analysis Complete: ${file.name}**\n\nI've extracted key information from the deck:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n🏢 **Industry**: B2B SaaS - Logistics Automation\n📅 **Founded**: 2023\n\nWould you like me to create a deal for this company? Just say "yes" if you'd like to proceed, or you can ask me questions or make corrections first.`,
+                            content: `✅ **Analysis Complete: ${file.name}**\n\nI've extracted key information from the deck:\n\n📊 **Company**: Acme Corp\n📝 **Description**: B2B SaaS platform for logistics automation\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n🏢 **Industry**: B2B SaaS - Logistics Automation\n📅 **Founded**: 2023\n\nWould you like me to create a deal for this company? Just say "yes" if you'd like to proceed, or you can ask me questions or make corrections first.`,
                             role: Role.Assistant,
                         }));
                     }, 2500);
