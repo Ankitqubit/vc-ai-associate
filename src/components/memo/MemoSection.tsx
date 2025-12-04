@@ -13,6 +13,7 @@ import Link from '@tiptap/extension-link';
 import Highlight from '@tiptap/extension-highlight';
 import BubbleMenuExtension from '@tiptap/extension-bubble-menu';
 import { CommentMark } from '@/lib/tiptap/extensions/CommentMark';
+import { CitationNode } from '@/lib/tiptap/extensions/CitationNode';
 import { BubbleMenuToolbar } from './BubbleMenuToolbar';
 import { CommentPopover } from './comments/CommentPopover';
 import { useCopilotAction } from '@copilotkit/react-core';
@@ -77,6 +78,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 multicolor: true,
             }),
             CommentMark,
+            CitationNode,
             BubbleMenuExtension,
             Placeholder.configure({
                 placeholder: 'Click to add content...',

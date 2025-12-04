@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { mockDeals, getMemoTemplate, createMemo } from '@/lib/data/mock-db';
-import { InvestmentMemo, MemoSection } from '@/lib/types';
+import { InvestmentMemo, MemoSection, Citation } from '@/lib/types';
+import { injectCitations } from '@/lib/utils/citations';
 
 // Toggle this to use real OpenAI or mock data
 const USE_MOCK_GENERATION = true; // Set to false to use real OpenAI
@@ -13,7 +14,7 @@ const openai = new OpenAI({
 // Mock content generator for fast development
 function generateMockContent(sectionTitle: string, deal: any): string {
     const mockContent: Record<string, string> = {
-        'Executive Summary': `${deal.company.name} is a ${deal.company.description} The company is currently at ${deal.metrics[0].value} in MRR with ${deal.metrics[0].trend || 'steady growth'}. Based on our thesis criteria, the deal scores ${deal.fitScore.score}/100, indicating ${deal.fitScore.score >= 80 ? 'strong' : deal.fitScore.score >= 60 ? 'moderate' : 'weak'} alignment. The team consists of ${deal.company.teamSize} members with relevant industry experience. We ${deal.fitScore.score >= 75 ? 'recommend proceeding to deeper diligence' : 'suggest further evaluation before proceeding'}.`,
+        'Executive Summary': `<p>${deal.company.name} is a ${deal.company.description} The company is currently at ${deal.metrics[0].value} in MRR<cite id="cite-exec-1"></cite> with ${deal.metrics[0].trend || 'steady growth'}. Based on our thesis criteria<cite id="cite-exec-2"></cite>, the deal scores ${deal.fitScore.score}/100, indicating ${deal.fitScore.score >= 80 ? 'strong' : deal.fitScore.score >= 60 ? 'moderate' : 'weak'} alignment. The team consists of ${deal.company.teamSize} members with relevant industry experience. We ${deal.fitScore.score >= 75 ? 'recommend proceeding to deeper diligence' : 'suggest further evaluation before proceeding'}.</p>`,
 
         'Company Overview': `${deal.company.name} was founded in ${deal.company.foundingDate} and is based in ${deal.company.location}. The company operates in the ${deal.company.description.includes('B2B') ? 'B2B SaaS' : 'B2C'} space with a current team of ${deal.company.teamSize} employees. The founding team brings significant expertise from previous roles at leading technology companies.`,
 
@@ -74,36 +75,39 @@ export async function POST(req: NextRequest) {
             console.log('Using MOCK generation (instant)');
 
             for (const templateSection of template.sections) {
-                const content = generateMockContent(templateSection.title, deal);
+                let content = generateMockContent(templateSection.title, deal);
 
-                // Create mock citations (in real app, would extract from sources)
-                const citations = [];
-                if (content.toLowerCase().includes('deck') || content.toLowerCase().includes('pitch')) {
+                // Create mock citations for this section
+                const citations: Citation[] = [];
+
+                // Add citation for Executive Summary
+                if (templateSection.title === 'Executive Summary') {
                     citations.push({
-                        id: `cite-${sections.length}-1`,
-                        type: 'deck' as const,
+                        id: 'cite-exec-1',
+                        type: 'deck',
                         source: `${deal.company.name} Pitch Deck`,
-                        content: 'Slide preview would go here',
-                        confidence: 'high' as const,
+                        content: 'Our current MRR is $450K with 15% month-over-month growth. We have 45 enterprise customers.',
+                        slideNumber: 8,
+                        confidence: 'high',
                     });
-                }
-                if (deal.callSummaries && deal.callSummaries.length > 0 &&
-                    (content.toLowerCase().includes('call') || content.toLowerCase().includes('conversation'))) {
                     citations.push({
-                        id: `cite-${sections.length}-2`,
-                        type: 'transcript' as const,
-                        source: `Call with ${deal.callSummaries[0].metadata.participants[0]} on ${deal.callSummaries[0].metadata.date}`,
-                        content: 'Transcript excerpt would go here',
-                        timestamp: '15:30',
-                        confidence: 'high' as const,
+                        id: 'cite-exec-2',
+                        type: 'transcript',
+                        source: 'Call with Sarah Chen',
+                        content: 'The deal aligns perfectly with our B2B SaaS thesis, particularly in the logistics automation space.',
+                        timestamp: '12:30',
+                        confidence: 'high',
                     });
                 }
+
+                // Inject citation nodes into HTML content
+                const contentWithCitations = injectCitations(content, citations);
 
                 sections.push({
                     id: `section-${sections.length + 1}`,
                     type: templateSection.type,
                     title: templateSection.title,
-                    content,
+                    content: contentWithCitations,
                     source: 'ai',
                     citations,
                     confidence: 'high',
