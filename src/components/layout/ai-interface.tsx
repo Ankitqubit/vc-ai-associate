@@ -234,22 +234,22 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
             setIsDictating(true);
         };
 
+        let finalTranscriptAccumulator = '';
+
         recognition.onresult = (event: any) => {
             let interimTranscript = '';
-            let finalTranscript = '';
 
             for (let i = event.resultIndex; i < event.results.length; i++) {
                 const transcript = event.results[i][0].transcript;
                 if (event.results[i].isFinal) {
-                    finalTranscript += transcript + ' ';
+                    finalTranscriptAccumulator += transcript + ' ';
                 } else {
                     interimTranscript += transcript;
                 }
             }
 
-            if (finalTranscript) {
-                setInputValue((prev) => prev + finalTranscript);
-            }
+            // Show live transcript (final + interim)
+            setInputValue(finalTranscriptAccumulator + interimTranscript);
         };
 
         recognition.onerror = (event: any) => {
