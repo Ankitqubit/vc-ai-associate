@@ -154,12 +154,21 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         setAttachedFiles(prev => [...prev, ...newFiles]);
         setIsDragging(false);
 
+        // Send initial acknowledgment message
+        if (newFiles.length > 0) {
+            const fileNames = newFiles.map(f => f.file.name).join(', ');
+            appendMessage(new TextMessage({
+                content: `📎 Received ${newFiles.length === 1 ? 'file' : `${newFiles.length} files`}: **${fileNames}**\n\nUploading and analyzing...`,
+                role: Role.Assistant,
+            }));
+        }
+
         newFiles.forEach((attachedFile) => {
-            simulateUpload(attachedFile.id);
+            simulateUpload(attachedFile.id, attachedFile.file);
         });
     };
 
-    const simulateUpload = (fileId: string) => {
+    const simulateUpload = (fileId: string, file: File) => {
         let progress = 0;
         const interval = setInterval(() => {
             progress += 10;
@@ -173,6 +182,8 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
             if (progress >= 100) {
                 clearInterval(interval);
+
+                // Send parsing status message
                 setTimeout(() => {
                     setAttachedFiles(prev =>
                         prev.map(f =>
@@ -182,6 +193,12 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         )
                     );
 
+                    appendMessage(new TextMessage({
+                        content: `🔍 Analyzing **${file.name}**...\n\nExtracting company information, metrics, and key details from the deck.`,
+                        role: Role.Assistant,
+                    }));
+
+                    // Complete parsing and send analysis
                     setTimeout(() => {
                         setAttachedFiles(prev =>
                             prev.map(f =>
@@ -191,14 +208,12 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             )
                         );
 
-                        const file = attachedFiles.find(f => f.id === fileId);
-                        if (file) {
-                            appendMessage(new TextMessage({
-                                content: `I've analyzed ${file.file.name}. Here's what I found:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n\nShould I create a deal for this company?`,
-                                role: Role.Assistant,
-                            }));
-                        }
-                    }, 2000);
+                        // Send analysis results
+                        appendMessage(new TextMessage({
+                            content: `✅ **Analysis Complete: ${file.name}**\n\nHere's what I found:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n🏢 **Industry**: B2B SaaS - Logistics Automation\n📅 **Founded**: 2023\n\nShould I create a deal for this company?`,
+                            role: Role.Assistant,
+                        }));
+                    }, 2500);
                 }, 500);
             }
         }, 200);

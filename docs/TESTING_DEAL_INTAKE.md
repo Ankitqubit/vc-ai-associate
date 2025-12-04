@@ -33,14 +33,34 @@ User confirms        →  AI understands         →  Creates deal
    - 🔍 Analyzing deck... (2 seconds)
    - ✅ Ready
 
-4. **AI sends a message** automatically:
+4. **AI sends messages** automatically with contextual feedback:
+
+   **Message 1 (Immediate):**
    ```
-   I've analyzed Acme_Deck.pdf. Here's what I found:
+   📎 Received file: Acme_Deck.pdf
+
+   Uploading and analyzing...
+   ```
+
+   **Message 2 (After upload completes - ~2 seconds):**
+   ```
+   🔍 Analyzing Acme_Deck.pdf...
+
+   Extracting company information, metrics, and key details from the deck.
+   ```
+
+   **Message 3 (After parsing - ~5 seconds total):**
+   ```
+   ✅ Analysis Complete: Acme_Deck.pdf
+
+   Here's what I found:
 
    📊 Company: Acme Corp
    💰 MRR: $450K (+15% MoM)
    👥 Team: 12 people
    📍 Location: San Francisco, CA
+   🏢 Industry: B2B SaaS - Logistics Automation
+   📅 Founded: 2023
 
    Should I create a deal for this company?
    ```
@@ -174,11 +194,26 @@ Here are realistic conversations you can have to test the AI:
 ```
 [Upload Acme_Deck.pdf]
 
-AI: I've analyzed Acme_Deck.pdf. Here's what I found:
-    📊 Acme Corp
+AI: 📎 Received file: Acme_Deck.pdf
+    Uploading and analyzing...
+
+    [2 seconds pass]
+
+    🔍 Analyzing Acme_Deck.pdf...
+    Extracting company information, metrics, and key details from the deck.
+
+    [2.5 seconds pass]
+
+    ✅ Analysis Complete: Acme_Deck.pdf
+
+    Here's what I found:
+
+    📊 Company: Acme Corp
     💰 MRR: $450K (+15% MoM)
     👥 Team: 12 people
     📍 Location: San Francisco, CA
+    🏢 Industry: B2B SaaS - Logistics Automation
+    📅 Founded: 2023
 
     Should I create a deal for this company?
 

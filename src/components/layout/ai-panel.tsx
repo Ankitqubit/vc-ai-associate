@@ -115,14 +115,26 @@ export function AIPanel() {
         setAttachedFiles(prev => [...prev, ...newFiles]);
         setIsDragging(false);
 
+        // Send initial acknowledgment message
+        if (newFiles.length > 0) {
+            const fileNames = newFiles.map(f => f.file.name).join(', ');
+            const aiMsg: Message = {
+                id: Date.now().toString(),
+                role: "ai",
+                content: `📎 Received ${newFiles.length === 1 ? 'file' : `${newFiles.length} files`}: **${fileNames}**\n\nUploading and analyzing...`,
+                timestamp: new Date(),
+            };
+            setMessages(prev => [...prev, aiMsg]);
+        }
+
         // Simulate upload progress for each file
         newFiles.forEach((attachedFile) => {
-            simulateUpload(attachedFile.id);
+            simulateUpload(attachedFile.id, attachedFile.file);
         });
     };
 
     // Simulate file upload progress
-    const simulateUpload = (fileId: string) => {
+    const simulateUpload = (fileId: string, file: File) => {
         let progress = 0;
         const interval = setInterval(() => {
             progress += 10;
@@ -136,6 +148,7 @@ export function AIPanel() {
 
             if (progress >= 100) {
                 clearInterval(interval);
+
                 // Move to parsing state
                 setTimeout(() => {
                     setAttachedFiles(prev =>
@@ -146,7 +159,16 @@ export function AIPanel() {
                         )
                     );
 
-                    // Simulate parsing (2 seconds)
+                    // Send parsing status message
+                    const parsingMsg: Message = {
+                        id: `${Date.now()}-parsing`,
+                        role: "ai",
+                        content: `🔍 Analyzing **${file.name}**...\n\nExtracting company information, metrics, and key details from the deck.`,
+                        timestamp: new Date(),
+                    };
+                    setMessages(prev => [...prev, parsingMsg]);
+
+                    // Simulate parsing (2.5 seconds)
                     setTimeout(() => {
                         setAttachedFiles(prev =>
                             prev.map(f =>
@@ -156,18 +178,15 @@ export function AIPanel() {
                             )
                         );
 
-                        // Auto-send AI message about the deck
-                        const file = attachedFiles.find(f => f.id === fileId);
-                        if (file) {
-                            const aiMsg: Message = {
-                                id: Date.now().toString(),
-                                role: "ai",
-                                content: `I've analyzed ${file.file.name}. Here's what I found:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n\nShould I create a deal for this company?`,
-                                timestamp: new Date(),
-                            };
-                            setMessages(prev => [...prev, aiMsg]);
-                        }
-                    }, 2000);
+                        // Send analysis results
+                        const aiMsg: Message = {
+                            id: Date.now().toString(),
+                            role: "ai",
+                            content: `✅ **Analysis Complete: ${file.name}**\n\nHere's what I found:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n🏢 **Industry**: B2B SaaS - Logistics Automation\n📅 **Founded**: 2023\n\nShould I create a deal for this company?`,
+                            timestamp: new Date(),
+                        };
+                        setMessages(prev => [...prev, aiMsg]);
+                    }, 2500);
                 }, 500);
             }
         }, 200);
