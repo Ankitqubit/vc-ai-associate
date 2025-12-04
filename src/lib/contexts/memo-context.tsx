@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { useCopilotReadable } from '@copilotkit/react-core';
-import { InvestmentMemo, MemoSection } from '../types';
+import { InvestmentMemo, MemoSection, CommentThread, TeamMember } from '../types';
 
 interface MemoContextType {
     memo: InvestmentMemo | null;
@@ -17,6 +17,11 @@ interface MemoContextType {
     setIsCanvasOpen: (open: boolean) => void;
     openCanvas: () => void;
     closeCanvas: () => void;
+    // Comment management
+    comments: CommentThread[];
+    setComments: (comments: CommentThread[] | ((prev: CommentThread[]) => CommentThread[])) => void;
+    teamMembers: TeamMember[];
+    getCommentsBySection: (sectionId: string) => CommentThread[];
 }
 
 const MemoContext = createContext<MemoContextType | null>(null);
@@ -30,6 +35,15 @@ export function MemoProvider({ children, initialMemo = null }: MemoProviderProps
     const [memo, setMemoState] = useState<InvestmentMemo | null>(initialMemo);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isCanvasOpen, setIsCanvasOpen] = useState(false);
+    const [comments, setComments] = useState<CommentThread[]>([]);
+
+    // Mock team members - in production, fetch from API
+    const teamMembers: TeamMember[] = [
+        { id: 'user-1', name: 'Sarah Chen', email: 'sarah@vc.com', avatar: 'https://i.pravatar.cc/150?img=1', role: 'partner' },
+        { id: 'user-2', name: 'Michael Ross', email: 'michael@vc.com', avatar: 'https://i.pravatar.cc/150?img=2', role: 'principal' },
+        { id: 'user-3', name: 'Emily Zhang', email: 'emily@vc.com', avatar: 'https://i.pravatar.cc/150?img=3', role: 'associate' },
+        { id: 'user-current', name: 'You', email: 'you@vc.com', role: 'analyst' },
+    ];
 
     // Provide current memo context to CopilotKit AI
     useCopilotReadable({
@@ -49,6 +63,49 @@ export function MemoProvider({ children, initialMemo = null }: MemoProviderProps
             })),
             metadata: memo.metadata,
         } : null,
+    });
+
+    // Provide comments context to CopilotKit AI
+    useCopilotReadable({
+        description: "All comments and discussions on the current memo. Each comment is attached to a specific section and may have replies. Status can be 'open' or 'resolved'. Use this to understand what has been discussed, what concerns have been raised, and what follow-ups are needed.",
+        value: comments.length > 0 ? {
+            totalComments: comments.length,
+            openComments: comments.filter(c => c.status === 'open').length,
+            resolvedComments: comments.filter(c => c.status === 'resolved').length,
+            commentThreads: comments.map(thread => ({
+                id: thread.id,
+                sectionId: thread.sectionId,
+                sectionType: memo?.sections.find(s => s.id === thread.sectionId)?.type,
+                highlightedText: thread.textRange.text,
+                content: thread.content,
+                author: thread.author.name,
+                isAiComment: thread.author.isAi,
+                status: thread.status,
+                mentions: thread.mentions.map(m => m.userName),
+                createdAt: thread.createdAt,
+                replyCount: thread.replies.length,
+                replies: thread.replies.map(r => ({
+                    content: r.content,
+                    author: r.author.name,
+                    isAi: r.author.isAi,
+                    mentions: r.mentions.map(m => m.userName),
+                    createdAt: r.createdAt,
+                })),
+            })),
+        } : null,
+    });
+
+    // Provide team members context to CopilotKit AI
+    useCopilotReadable({
+        description: "Team members who can be @mentioned in comments. Use this to know who to tag when creating comments.",
+        value: {
+            members: teamMembers.map(m => ({
+                id: m.id,
+                name: m.name,
+                role: m.role,
+                email: m.email,
+            })),
+        },
     });
 
     const setMemo = useCallback((newMemo: InvestmentMemo | null) => {
@@ -154,6 +211,10 @@ export function MemoProvider({ children, initialMemo = null }: MemoProviderProps
         setIsCanvasOpen(false);
     }, []);
 
+    const getCommentsBySection = useCallback((sectionId: string): CommentThread[] => {
+        return comments.filter(c => c.sectionId === sectionId);
+    }, [comments]);
+
     const value: MemoContextType = {
         memo,
         setMemo,
@@ -167,6 +228,10 @@ export function MemoProvider({ children, initialMemo = null }: MemoProviderProps
         setIsCanvasOpen,
         openCanvas,
         closeCanvas,
+        comments,
+        setComments,
+        teamMembers,
+        getCommentsBySection,
     };
 
     return (

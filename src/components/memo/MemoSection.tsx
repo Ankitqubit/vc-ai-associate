@@ -19,7 +19,6 @@ import { useCopilotAction } from '@copilotkit/react-core';
 import { AIPreviewDiff } from './AIPreviewDiff';
 import { ExplanationTooltip } from './ExplanationTooltip';
 import { toast } from 'sonner';
-import { mockTeamMembers } from '@/lib/data/mock-db';
 
 interface MemoSectionProps {
     section: MemoSectionType;
@@ -50,8 +49,10 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
     const [explanation, setExplanation] = useState('');
     const [explanationPosition, setExplanationPosition] = useState({ x: 0, y: 0 });
 
-    // Comment state
-    const [comments, setComments] = useState<CommentThread[]>([]);
+    // Get comments from context
+    const { comments, setComments, teamMembers, getCommentsBySection } = useMemo();
+    const sectionComments = getCommentsBySection(section.id);
+
     const [showCommentPopover, setShowCommentPopover] = useState(false);
     const [commentSelection, setCommentSelection] = useState<{
         text: string;
@@ -398,8 +399,8 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 content,
                 author: {
                     id: 'user-current',
-                    name: mockTeamMembers[0].name,
-                    avatar: mockTeamMembers[0].avatar,
+                    name: teamMembers.find(m => m.id === 'user-current')?.name || 'You',
+                    avatar: teamMembers.find(m => m.id === 'user-current')?.avatar,
                     isAi: false,
                 },
                 mentions,
@@ -433,8 +434,8 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 content,
                 author: {
                     id: 'user-current',
-                    name: mockTeamMembers[0].name,
-                    avatar: mockTeamMembers[0].avatar,
+                    name: teamMembers.find(m => m.id === 'user-current')?.name || 'You',
+                    avatar: teamMembers.find(m => m.id === 'user-current')?.avatar,
                     isAi: false,
                 },
                 mentions,
@@ -513,7 +514,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 status !== 'open'
                     ? {
                           id: 'user-current',
-                          name: mockTeamMembers[0].name,
+                          name: teamMembers.find(m => m.id === 'user-current')?.name || 'You',
                           timestamp: new Date().toISOString(),
                       }
                     : undefined;
@@ -645,7 +646,7 @@ export function MemoSection({ section, sectionNumber }: MemoSectionProps) {
                 selectedText={commentSelection?.text}
                 onCreateComment={handleCreateComment}
                 threads={activeCommentThreads}
-                teamMembers={mockTeamMembers}
+                teamMembers={teamMembers}
                 onReply={handleReply}
                 onDelete={handleDeleteComment}
                 onDeleteReply={handleDeleteReply}
