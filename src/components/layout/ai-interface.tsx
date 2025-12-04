@@ -351,6 +351,44 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                 case "show_deal_snapshot":
                     if (!deal) return null;
                     return <DealCard deal={deal} />;
+                case "create_deal_from_deck":
+                    // Create deal object from args
+                    const { companyName, description, mrr, teamSize, location, stage } = args;
+                    const newDeal = {
+                        id: `deal-${Date.now()}`,
+                        company: {
+                            name: companyName,
+                            description: description,
+                            location: location || 'N/A',
+                            teamSize: teamSize || 0,
+                        },
+                        metrics: [
+                            {
+                                id: '1',
+                                name: 'MRR',
+                                value: mrr || '$0',
+                                trend: '+15% MoM'
+                            },
+                            {
+                                id: '2',
+                                name: 'ARR',
+                                value: mrr ? `$${(parseInt(mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
+                                trend: null
+                            },
+                            {
+                                id: '3',
+                                name: 'Burn',
+                                value: '$120K',
+                                trend: null
+                            }
+                        ],
+                        fitScore: { score: 78 },
+                        stage: stage || 'Inbound',
+                        source: 'Pitch Deck Upload',
+                        owner: { name: 'Sarah Analyst' },
+                        lastActivity: 'Just now'
+                    };
+                    return <DealCard deal={newDeal} isNew={true} loading={status === "inProgress"} />;
                 case "show_metrics":
                     return deal ? <MetricsDisplay metrics={deal.metrics} /> : null;
                 case "compare_deals":

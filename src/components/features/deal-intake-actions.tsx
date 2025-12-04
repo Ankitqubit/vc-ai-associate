@@ -53,16 +53,19 @@ Would you like me to create a deal for this company?`;
     // Create a new deal from extracted deck data
     useCopilotAction({
         name: "create_deal_from_deck",
-        description: `Create a new deal from pitch deck data. CRITICAL: ONLY call this action when the user EXPLICITLY confirms deal creation with phrases like:
-- "yes"
-- "yes, create it"
-- "create the deal"
-- "looks good, create it"
-- "go ahead"
+        description: `Create a new deal from pitch deck data and display the deal card in the chat.
 
-DO NOT call this action automatically after analysis. WAIT for explicit user confirmation.
-You must first present extracted data and ask "Should I create a deal for this company?"
-Then WAIT for the user's response before calling this action.`,
+WHEN TO CALL THIS:
+- After analyzing a pitch deck with analyze_pitch_deck
+- User confirms with "yes", "create it", "go ahead", or similar affirmative response
+- You have the company information from the analysis
+
+CRITICAL: This action will:
+1. Create the deal in the system
+2. Automatically render a beautiful DealCard component with NEW badge
+3. Display the card directly in the chat (don't describe it, let the render function show it)
+
+After calling this action, DO NOT say "The deal has been created". Let the action's result speak for itself - it will show the success message AND the deal card automatically.`,
         parameters: [
             {
                 name: "companyName",
@@ -131,7 +134,7 @@ Then WAIT for the user's response before calling this action.`,
                 // In a real app, this would call an API to create the deal
                 // For now, we'll simulate it with the existing deals API
 
-                console.log('Creating deal with data:', {
+                console.log('🎯 create_deal_from_deck ACTION CALLED!', {
                     dealId,
                     companyName,
                     description,
@@ -143,71 +146,69 @@ Then WAIT for the user's response before calling this action.`,
                 });
 
                 // Return success message (render will handle UI)
-                return `✅ **Deal created successfully!**
+                const result = `✅ **Deal created successfully!**
 
 📊 **${companyName}** has been added to your pipeline.
 
 Click the card below to view full details.`;
+
+                console.log('🎯 Action returning result:', result);
+                return result;
             } catch (error) {
                 console.error('Failed to create deal:', error);
                 return `❌ Sorry, I encountered an error creating the deal. Please try again or create it manually.`;
             }
         },
         // Use render to display custom UI (DealCard) in the chat
-        render: ({ status, result, args }) => {
-            // Only render the card when action completes successfully
-            if (status === "complete" && result && result.includes("✅")) {
-                const { companyName, description, mrr, teamSize, location, stage } = args;
-                const dealId = `deal-${Date.now()}`;
+        render: ({ status, result, args }: any) => {
+            console.log('🔍 render function called!', { status, result, args });
 
-                const deal = {
-                    id: dealId,
-                    company: {
-                        name: companyName,
-                        description: description,
-                        location: location || 'N/A',
-                        teamSize: teamSize || 0,
+            const { companyName, description, mrr, teamSize, location, stage } = args;
+            const dealId = `deal-${Date.now()}`;
+
+            const deal = {
+                id: dealId,
+                company: {
+                    name: companyName,
+                    description: description,
+                    location: location || 'N/A',
+                    teamSize: teamSize || 0,
+                },
+                metrics: [
+                    {
+                        id: '1',
+                        name: 'MRR',
+                        value: mrr || '$0',
+                        trend: '+15% MoM'
                     },
-                    metrics: [
-                        {
-                            id: '1',
-                            name: 'MRR',
-                            value: mrr || '$0',
-                            trend: '+15% MoM'
-                        },
-                        {
-                            id: '2',
-                            name: 'ARR',
-                            value: mrr ? `$${(parseInt(mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
-                            trend: null
-                        },
-                        {
-                            id: '3',
-                            name: 'Burn',
-                            value: '$120K',
-                            trend: null
-                        }
-                    ],
-                    fitScore: { score: 78 },
-                    stage: stage || 'Inbound',
-                    source: 'Pitch Deck Upload',
-                    owner: { name: 'Sarah Analyst' },
-                    lastActivity: 'Just now'
-                };
+                    {
+                        id: '2',
+                        name: 'ARR',
+                        value: mrr ? `$${(parseInt(mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
+                        trend: null
+                    },
+                    {
+                        id: '3',
+                        name: 'Burn',
+                        value: '$120K',
+                        trend: null
+                    }
+                ],
+                fitScore: { score: 78 },
+                stage: stage || 'Inbound',
+                source: 'Pitch Deck Upload',
+                owner: { name: 'Sarah Analyst' },
+                lastActivity: 'Just now'
+            };
 
-                return (
-                    <div className="space-y-3">
-                        <DealCard deal={deal} isNew={true} />
-                    </div>
-                );
-            }
-
-            // Show loading during execution
-            if (status === "executing") {
-                return <div className="text-slate-500">Creating deal...</div>;
-            }
-
-            return null;
+            // Match the pattern from update_deal_metric - always return component
+            return (
+                <DealCard
+                    deal={deal}
+                    isNew={true}
+                    loading={status === "inProgress"}
+                />
+            );
         },
     });
 
