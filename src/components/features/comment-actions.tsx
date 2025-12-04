@@ -125,18 +125,30 @@ export function CommentActions() {
             };
 
             // Add to comments
-            setComments((prev) => [...prev, newThread]);
+            setComments((prev) => {
+                const updated = [...prev, newThread];
+                console.log('[CommentActions] Added AI comment:', {
+                    threadId: newThread.id,
+                    sectionId: section.id,
+                    sectionTitle: section.title,
+                    comment: newThread.content,
+                    totalComments: updated.length
+                });
+                return updated;
+            });
 
             toast.success('Comment Added', {
-                description: `Added to ${section.title}`,
+                description: `Added to ${section.title}. The comment is now in the comments list.`,
+                duration: 5000,
             });
 
             return {
                 success: true,
                 commentId: newThread.id,
                 sectionTitle: section.title,
+                sectionType,
                 mentionedUsers: mentions.map(m => m.userName),
-                message: `Successfully added comment to "${section.title}"${mentions.length > 0 ? ` and mentioned ${mentions.map(m => m.userName).join(', ')}` : ''}.`,
+                message: `Successfully added comment to "${section.title}"${mentions.length > 0 ? ` and mentioned ${mentions.map(m => m.userName).join(', ')}` : ''}. The comment has been added to the section - you can view all comments by opening the memo canvas.`,
             };
         },
         render: ({ status, args, result }: any) => {
