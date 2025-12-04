@@ -19,12 +19,16 @@ export function DealIntakeActions() {
     // Create a new deal from extracted deck data
     useCopilotAction({
         name: "create_deal_from_deck",
-        description: `Create a new deal from pitch deck data that was uploaded and analyzed. Use this action when:
-- User has uploaded a deck and you've extracted company information
-- User confirms they want to create a deal
-- User says "yes, create it" or "looks good" after seeing the extracted data
+        description: `Create a new deal from pitch deck data. CRITICAL: ONLY call this action when the user EXPLICITLY confirms deal creation with phrases like:
+- "yes"
+- "yes, create it"
+- "create the deal"
+- "looks good, create it"
+- "go ahead"
 
-The AI should first present the extracted data to the user, then call this action only after user confirmation.`,
+DO NOT call this action automatically after analysis. WAIT for explicit user confirmation.
+You must first present extracted data and ask "Should I create a deal for this company?"
+Then WAIT for the user's response before calling this action.`,
         parameters: [
             {
                 name: "companyName",

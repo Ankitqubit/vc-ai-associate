@@ -53,7 +53,7 @@ User confirms        →  AI understands         →  Creates deal
    ```
    ✅ Analysis Complete: Acme_Deck.pdf
 
-   Here's what I found:
+   I've extracted key information from the deck:
 
    📊 Company: Acme Corp
    💰 MRR: $450K (+15% MoM)
@@ -62,8 +62,12 @@ User confirms        →  AI understands         →  Creates deal
    🏢 Industry: B2B SaaS - Logistics Automation
    📅 Founded: 2023
 
-   Should I create a deal for this company?
+   Would you like me to create a deal for this company?
+   Just say "yes" if you'd like to proceed, or you can
+   ask me questions or make corrections first.
    ```
+
+   **IMPORTANT**: The AI will wait for your confirmation. It will NOT create the deal automatically.
 
 ### **Test 2: Conversational Deal Creation**
 
@@ -206,7 +210,7 @@ AI: 📎 Received file: Acme_Deck.pdf
 
     ✅ Analysis Complete: Acme_Deck.pdf
 
-    Here's what I found:
+    I've extracted key information from the deck:
 
     📊 Company: Acme Corp
     💰 MRR: $450K (+15% MoM)
@@ -215,7 +219,9 @@ AI: 📎 Received file: Acme_Deck.pdf
     🏢 Industry: B2B SaaS - Logistics Automation
     📅 Founded: 2023
 
-    Should I create a deal for this company?
+    Would you like me to create a deal for this company?
+    Just say "yes" if you'd like to proceed, or you can
+    ask me questions or make corrections first.
 
 You: yes
 
