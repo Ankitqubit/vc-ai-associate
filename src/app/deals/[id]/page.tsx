@@ -17,6 +17,7 @@ import { DealContext } from "@/components/features/deal-context";
 import { DealStateProvider } from "@/lib/contexts/deal-state-context";
 import { MemoProvider } from "@/lib/contexts/memo-context";
 import { MemoActions } from "@/components/features/memo-actions";
+import { CommentActions } from "@/components/features/comment-actions";
 import { DealHeader } from "@/components/features/deal-header";
 import { DealHero } from "@/components/features/deal-hero";
 import { DealMetrics } from "@/components/features/deal-metrics";
@@ -45,6 +46,7 @@ export default async function DealPage({ params }: PageProps) {
                 <DealPageContent deal={deal}>
                     <DealContext />
                     <MemoActions />
+                    <CommentActions />
                 </DealPageContent>
             </MemoProvider>
         </DealStateProvider>
