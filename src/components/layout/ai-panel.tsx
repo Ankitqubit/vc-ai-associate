@@ -6,12 +6,22 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sparkles, ArrowRight, MoreHorizontal, Mic, Paperclip, X, StopCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { FileUploadZone } from "@/components/deals/FileUploadZone";
+import { FilePreviewCard } from "@/components/deals/FilePreviewCard";
 
 interface Message {
     id: string;
     role: "ai" | "user";
     content: string;
     timestamp: Date;
+}
+
+interface AttachedFile {
+    file: File;
+    id: string;
+    uploadProgress: number;
+    status: 'uploading' | 'parsing' | 'success' | 'error';
+    errorMessage?: string;
 }
 
 const INITIAL_MESSAGES: Message[] = [
@@ -28,7 +38,10 @@ export function AIPanel() {
     const [inputValue, setInputValue] = useState("");
     const [isTyping, setIsTyping] = useState(false);
     const [isListening, setIsListening] = useState(false);
+    const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -90,8 +103,140 @@ export function AIPanel() {
         }
     };
 
+    // Handle file drop
+    const handleFileDrop = (files: File[]) => {
+        const newFiles: AttachedFile[] = files.map(file => ({
+            file,
+            id: `${Date.now()}-${Math.random()}`,
+            uploadProgress: 0,
+            status: 'uploading' as const,
+        }));
+
+        setAttachedFiles(prev => [...prev, ...newFiles]);
+        setIsDragging(false);
+
+        // Simulate upload progress for each file
+        newFiles.forEach((attachedFile) => {
+            simulateUpload(attachedFile.id);
+        });
+    };
+
+    // Simulate file upload progress
+    const simulateUpload = (fileId: string) => {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            setAttachedFiles(prev =>
+                prev.map(f =>
+                    f.id === fileId
+                        ? { ...f, uploadProgress: progress }
+                        : f
+                )
+            );
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                // Move to parsing state
+                setTimeout(() => {
+                    setAttachedFiles(prev =>
+                        prev.map(f =>
+                            f.id === fileId
+                                ? { ...f, status: 'parsing' }
+                                : f
+                        )
+                    );
+
+                    // Simulate parsing (2 seconds)
+                    setTimeout(() => {
+                        setAttachedFiles(prev =>
+                            prev.map(f =>
+                                f.id === fileId
+                                    ? { ...f, status: 'success' }
+                                    : f
+                            )
+                        );
+
+                        // Auto-send AI message about the deck
+                        const file = attachedFiles.find(f => f.id === fileId);
+                        if (file) {
+                            const aiMsg: Message = {
+                                id: Date.now().toString(),
+                                role: "ai",
+                                content: `I've analyzed ${file.file.name}. Here's what I found:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n\nShould I create a deal for this company?`,
+                                timestamp: new Date(),
+                            };
+                            setMessages(prev => [...prev, aiMsg]);
+                        }
+                    }, 2000);
+                }, 500);
+            }
+        }, 200);
+    };
+
+    // Remove attached file
+    const handleRemoveFile = (fileId: string) => {
+        setAttachedFiles(prev => prev.filter(f => f.id !== fileId));
+    };
+
+    // Handle paperclip click
+    const handlePaperclipClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    // Handle file input change
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            handleFileDrop(files);
+        }
+        // Reset input so same file can be selected again
+        e.target.value = '';
+    };
+
+    // Handle drag events on the panel
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        // Only set to false if leaving the panel entirely
+        if (e.currentTarget === e.target) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+    };
+
     return (
-        <aside className="w-[400px] bg-white/80 backdrop-blur-xl border-l border-white/20 shadow-2xl flex flex-col h-full z-30 relative font-sans">
+        <aside
+            className="w-[400px] bg-white/80 backdrop-blur-xl border-l border-white/20 shadow-2xl flex flex-col h-full z-30 relative font-sans"
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+        >
+            {/* File Upload Zone Overlay */}
+            <FileUploadZone
+                isActive={isDragging}
+                onDrop={handleFileDrop}
+            />
+
+            {/* Hidden File Input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.pptx,.ppt"
+                multiple
+                className="hidden"
+                onChange={handleFileInputChange}
+            />
+
             {/* Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-white/50 backdrop-blur-md">
                 <div className="flex items-center space-x-3">
@@ -180,8 +325,29 @@ export function AIPanel() {
 
             {/* Input Area */}
             <div className="p-4 bg-white border-t border-slate-100">
+                {/* Attached Files Preview */}
+                {attachedFiles.length > 0 && (
+                    <div className="mb-3 space-y-2 max-h-60 overflow-y-auto">
+                        {attachedFiles.map((attachedFile) => (
+                            <FilePreviewCard
+                                key={attachedFile.id}
+                                file={attachedFile.file}
+                                uploadProgress={attachedFile.uploadProgress}
+                                status={attachedFile.status}
+                                onRemove={() => handleRemoveFile(attachedFile.id)}
+                                errorMessage={attachedFile.errorMessage}
+                            />
+                        ))}
+                    </div>
+                )}
+
                 <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-inner">
-                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-slate-400 hover:text-indigo-600 ml-1"
+                        onClick={handlePaperclipClick}
+                    >
                         <Paperclip className="h-5 w-5" />
                     </Button>
                     <input
