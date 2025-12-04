@@ -355,7 +355,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     // Create deal object from args
                     const { companyName, description, mrr, teamSize, location, stage } = args;
                     const newDeal = {
-                        id: `deal-${Date.now()}`,
+                        id: 'deal-1', // Link to existing mock deal page
                         company: {
                             name: companyName,
                             description: description,

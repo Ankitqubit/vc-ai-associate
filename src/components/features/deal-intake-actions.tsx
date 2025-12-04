@@ -175,10 +175,9 @@ Click the card below to view full details.`;
             console.log('🔍 render function called!', { status, result, args });
 
             const { companyName, description, mrr, teamSize, location, stage } = args;
-            const dealId = `deal-${Date.now()}`;
 
             const deal = {
-                id: dealId,
+                id: 'deal-1', // Link to existing mock deal page
                 company: {
                     name: companyName,
                     description: description,
