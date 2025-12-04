@@ -71,6 +71,50 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         initialMessages: [],
     });
 
+    // Detect thinking context from last user message
+    const getThinkingContext = (): "analyzing" | "creating" | "searching" | "processing" => {
+        if (visibleMessages.length === 0) return 'processing';
+
+        // Get last user message
+        const lastUserMessage = [...visibleMessages].reverse().find(msg =>
+            msg.role === 'user' || msg.role === Role.User
+        );
+
+        if (!lastUserMessage?.content) return 'processing';
+
+        const content = String(lastUserMessage.content).toLowerCase();
+
+        // Check for file attachments or analysis keywords
+        if (content.includes('[attached file:') ||
+            content.includes('analyz') ||
+            content.includes('pitch deck') ||
+            content.includes('extract') ||
+            content.includes('review') ||
+            content.includes('examine')) {
+            return 'analyzing';
+        }
+
+        // Check for creation keywords
+        if (content.includes('create') ||
+            content.includes('add') ||
+            content.includes('new deal') ||
+            content.includes('make') ||
+            content.includes('build')) {
+            return 'creating';
+        }
+
+        // Check for search keywords
+        if (content.includes('search') ||
+            content.includes('find') ||
+            content.includes('look for') ||
+            content.includes('show me') ||
+            content.includes('get')) {
+            return 'searching';
+        }
+
+        return 'processing';
+    };
+
     useEffect(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -493,7 +537,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 </div>
                             );
                         })}
-                        {isLoading && <AIThinking context="processing" />}
+                        {isLoading && <AIThinking context={getThinkingContext()} />}
                     </div>
                 </div>
 
@@ -724,7 +768,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 </div>
                             );
                         })}
-                        {isLoading && <AIThinking context="processing" />}
+                        {isLoading && <AIThinking context={getThinkingContext()} />}
                     </div>
                 </ScrollArea>
             </div>
