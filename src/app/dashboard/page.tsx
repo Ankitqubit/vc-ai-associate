@@ -10,17 +10,58 @@ import { cn } from "@/lib/utils";
 
 import { DealStateProvider } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
+import { ConversationHistory, type Conversation } from "@/components/chat/ConversationHistory";
 
 export default function DashboardPage() {
     const [isChatActive, setIsChatActive] = useState(false);
+    const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
+
+    // Mock conversations data (replace with real data later)
+    const [conversations, setConversations] = useState<Conversation[]>([
+        {
+            id: "1",
+            title: "Deal Analysis Discussion",
+            preview: "Tell me about the Acme Corp deal...",
+            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+        },
+        {
+            id: "2",
+            title: "Market Research",
+            preview: "What's the current state of the SaaS market?",
+            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
+        },
+        {
+            id: "3",
+            title: "Investment Memo Draft",
+            preview: "Help me draft an investment memo for...",
+            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
+        }
+    ]);
+
     // Use a default deal for the dashboard context, or null if supported
     const defaultDeal = getDealById("deal-1");
 
+    const handleNewConversation = () => {
+        const newConv: Conversation = {
+            id: Date.now().toString(),
+            title: "New Chat",
+            preview: "",
+            timestamp: new Date()
+        };
+        setConversations([newConv, ...conversations]);
+        setActiveConversationId(newConv.id);
+    };
+
+    const handleDeleteConversation = (id: string) => {
+        setConversations(conversations.filter(c => c.id !== id));
+        if (activeConversationId === id) {
+            setActiveConversationId(undefined);
+        }
+    };
+
     return (
         <DealStateProvider initialDeal={defaultDeal!}>
-            <div className="h-screen flex flex-col bg-slate-50/50 font-sans relative overflow-hidden">
-                {/* CopilotKit Actions are now global */}
-
+            <div className="h-screen flex bg-slate-50/50 font-sans relative overflow-hidden">
                 {/* Background Pattern */}
                 <div className="absolute inset-0 z-0 opacity-[0.03]"
                     style={{ backgroundImage: 'radial-gradient(#4f46e5 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
@@ -34,6 +75,19 @@ export default function DashboardPage() {
                     "absolute inset-0 bg-slate-900/5 backdrop-blur-[2px] transition-opacity duration-500 z-[5] pointer-events-none",
                     isChatActive ? "opacity-100" : "opacity-0"
                 )} />
+
+                {/* Conversation History Sidebar - Only shown when chat is active */}
+                {isChatActive && (
+                    <div className="relative z-10 animate-in slide-in-from-left duration-300">
+                        <ConversationHistory
+                            conversations={conversations}
+                            activeConversationId={activeConversationId}
+                            onSelectConversation={setActiveConversationId}
+                            onNewConversation={handleNewConversation}
+                            onDeleteConversation={handleDeleteConversation}
+                        />
+                    </div>
+                )}
 
                 {/* Main Content - Flexible middle section */}
                 <main className="flex-1 flex flex-col relative z-10 overflow-hidden">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Mic, Paperclip, ArrowUp, X, Maximize2, Minimize2, Headphones } from "lucide-react";
+import { Mic, Paperclip, ArrowUp, X, Maximize2, Minimize2, Headphones, Copy, ThumbsUp, ThumbsDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -61,6 +61,8 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const [isChatActive, setIsChatActive] = useState(false);
     const [pendingFiles, setPendingFiles] = useState<File[]>([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [messageFeedback, setMessageFeedback] = useState<Record<string, 'up' | 'down' | null>>({});
+    const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const recognitionRef = useRef<any>(null);
@@ -207,6 +209,26 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         if (selectedText) {
             clearSelection();
         }
+    };
+
+    const handleCopy = async (messageId: string, content: string) => {
+        try {
+            await navigator.clipboard.writeText(content);
+            setCopiedMessageId(messageId);
+            setTimeout(() => setCopiedMessageId(null), 2000);
+        } catch (err) {
+            console.error('Failed to copy:', err);
+        }
+    };
+
+    const handleFeedback = (messageId: string, feedback: 'up' | 'down') => {
+        setMessageFeedback(prev => ({
+            ...prev,
+            [messageId]: prev[messageId] === feedback ? null : feedback
+        }));
+
+        // TODO: Send feedback to backend/analytics
+        console.log(`Message ${messageId} received ${feedback} feedback`);
     };
 
     const handleDictate = () => {
@@ -569,12 +591,16 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
                                 const isUI = !(msg as any).content && ((msg as any).ui || (msg as any).type === "ActionExecutionMessage" || (msg as any).name);
 
+                                const messageId = msg.id || `msg-${index}`;
+                                const isUser = isUserMessage(msg);
+                                const messageContent = String((msg as any).content || '');
+
                                 return (
                                     <div
-                                        key={msg.id || index}
+                                        key={messageId}
                                         className={cn(
                                             "flex w-full animate-in slide-in-from-bottom-2 duration-300",
-                                            isUserMessage(msg) ? "justify-end" : "justify-start"
+                                            isUser ? "justify-end" : "justify-start"
                                         )}
                                     >
                                         {isUI ? (
@@ -582,13 +608,61 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                                 {content}
                                             </div>
                                         ) : (
-                                            <div className={cn(
-                                                "max-w-[75%] rounded-2xl px-5 py-3.5 text-sm shadow-sm relative",
-                                                isUserMessage(msg)
-                                                    ? "bg-indigo-600 text-white rounded-br-md"
-                                                    : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
-                                            )}>
-                                                {content}
+                                            <div className="flex flex-col gap-2 max-w-[75%]">
+                                                <div className={cn(
+                                                    "rounded-2xl px-5 py-3.5 text-sm shadow-sm relative group",
+                                                    isUser
+                                                        ? "bg-indigo-600 text-white rounded-br-md"
+                                                        : "bg-white border border-slate-100 text-slate-700 rounded-bl-md shadow-md"
+                                                )}>
+                                                    {content}
+                                                </div>
+
+                                                {/* Action Buttons - Only for AI messages */}
+                                                {!isUser && (
+                                                    <div className="flex items-center gap-1 px-1">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-7 px-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                                                            onClick={() => handleCopy(messageId, messageContent)}
+                                                        >
+                                                            {copiedMessageId === messageId ? (
+                                                                <span className="text-xs text-green-600">Copied!</span>
+                                                            ) : (
+                                                                <Copy className="h-3.5 w-3.5" />
+                                                            )}
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className={cn(
+                                                                "h-7 px-2 hover:bg-slate-100",
+                                                                messageFeedback[messageId] === 'up'
+                                                                    ? "text-green-600"
+                                                                    : "text-slate-400 hover:text-green-600"
+                                                            )}
+                                                            onClick={() => handleFeedback(messageId, 'up')}
+                                                        >
+                                                            <ThumbsUp className="h-3.5 w-3.5" />
+                                                        </Button>
+
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className={cn(
+                                                                "h-7 px-2 hover:bg-slate-100",
+                                                                messageFeedback[messageId] === 'down'
+                                                                    ? "text-red-600"
+                                                                    : "text-slate-400 hover:text-red-600"
+                                                            )}
+                                                            onClick={() => handleFeedback(messageId, 'down')}
+                                                        >
+                                                            <ThumbsDown className="h-3.5 w-3.5" />
+                                                        </Button>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
