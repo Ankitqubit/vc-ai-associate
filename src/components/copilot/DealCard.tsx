@@ -8,9 +8,10 @@ import Link from "next/link";
 interface DealCardProps {
     deal: Deal;
     loading?: boolean;
+    isNew?: boolean;
 }
 
-export function DealCard({ deal, loading }: DealCardProps) {
+export function DealCard({ deal, loading, isNew }: DealCardProps) {
     const getFitScoreColor = (score: number) => {
         if (score >= 80) return "text-green-500";
         if (score >= 60) return "text-yellow-500";
@@ -41,7 +42,16 @@ export function DealCard({ deal, loading }: DealCardProps) {
     }
 
     return (
-        <Link href={`/deals/${deal.id}`} className="block group rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 overflow-hidden cursor-pointer">
+        <Link href={`/deals/${deal.id}`} className="block group relative rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 overflow-hidden cursor-pointer">
+            {/* NEW badge */}
+            {isNew && (
+                <div className="absolute top-3 right-3 z-10">
+                    <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+                        NEW
+                    </span>
+                </div>
+            )}
+
             {/* Header with gradient */}
             <div className={cn(
                 "bg-gradient-to-r p-6 border-b border-border/50",

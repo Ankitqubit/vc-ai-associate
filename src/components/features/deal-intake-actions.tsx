@@ -2,6 +2,7 @@
 
 import { useCopilotAction } from "@copilotkit/react-core";
 import { useRouter } from "next/navigation";
+import { DealCard } from "@/components/copilot/DealCard";
 
 /**
  * Deal Intake Actions - Handles creation of new deals from uploaded decks
@@ -15,6 +16,39 @@ import { useRouter } from "next/navigation";
  */
 export function DealIntakeActions() {
     const router = useRouter();
+
+    // Simulate deck analysis
+    useCopilotAction({
+        name: "analyze_pitch_deck",
+        description: "Analyze an uploaded pitch deck and extract company information, metrics, and key details. Call this when the user explicitly asks to analyze a deck.",
+        parameters: [
+            {
+                name: "fileName",
+                type: "string",
+                description: "Name of the file to analyze",
+                required: false,
+            },
+        ],
+        handler: async ({ fileName }) => {
+            // Simulate processing time
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Return mock analysis (hardcoded for now)
+            return `✅ **Analysis Complete**
+
+I've extracted the following information from the pitch deck:
+
+📊 **Company**: Acme Corp
+📝 **Description**: B2B SaaS platform for logistics automation
+💰 **MRR**: $450K (+15% MoM)
+👥 **Team**: 12 people
+📍 **Location**: San Francisco, CA
+🏢 **Industry**: B2B SaaS - Logistics Automation
+📅 **Founded**: 2023
+
+Would you like me to create a deal for this company?`;
+        },
+    });
 
     // Create a new deal from extracted deck data
     useCopilotAction({
@@ -108,38 +142,72 @@ Then WAIT for the user's response before calling this action.`,
                     stage: stage || 'Inbound'
                 });
 
-                // Simulate deal creation
-                // TODO: Call actual API when backend is ready
-                // const response = await fetch('/api/deals/create', {
-                //     method: 'POST',
-                //     headers: { 'Content-Type': 'application/json' },
-                //     body: JSON.stringify({ ... })
-                // });
-
-                // For now, navigate to an existing deal as a demo
-                // In production, navigate to the newly created deal
-                router.push('/pipeline');
-
+                // Return success message (render will handle UI)
                 return `✅ **Deal created successfully!**
 
-📊 **${companyName}**
-${description}
+📊 **${companyName}** has been added to your pipeline.
 
-${mrr ? `💰 MRR: ${mrr}` : ''}
-${teamSize ? `👥 Team: ${teamSize} people` : ''}
-${location ? `📍 Location: ${location}` : ''}
-${foundingDate ? `📅 Founded: ${foundingDate}` : ''}
-
-The deal has been added to your pipeline in **${stage || 'Inbound'}** stage.
-
-What would you like to do next?
-• Draft founder questions
-• Research competitors
-• Generate investment memo`;
+Click the card below to view full details.`;
             } catch (error) {
                 console.error('Failed to create deal:', error);
                 return `❌ Sorry, I encountered an error creating the deal. Please try again or create it manually.`;
             }
+        },
+        // Use render to display custom UI (DealCard) in the chat
+        render: ({ status, result, args }) => {
+            // Only render the card when action completes successfully
+            if (status === "complete" && result && result.includes("✅")) {
+                const { companyName, description, mrr, teamSize, location, stage } = args;
+                const dealId = `deal-${Date.now()}`;
+
+                const deal = {
+                    id: dealId,
+                    company: {
+                        name: companyName,
+                        description: description,
+                        location: location || 'N/A',
+                        teamSize: teamSize || 0,
+                    },
+                    metrics: [
+                        {
+                            id: '1',
+                            name: 'MRR',
+                            value: mrr || '$0',
+                            trend: '+15% MoM'
+                        },
+                        {
+                            id: '2',
+                            name: 'ARR',
+                            value: mrr ? `$${(parseInt(mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
+                            trend: null
+                        },
+                        {
+                            id: '3',
+                            name: 'Burn',
+                            value: '$120K',
+                            trend: null
+                        }
+                    ],
+                    fitScore: { score: 78 },
+                    stage: stage || 'Inbound',
+                    source: 'Pitch Deck Upload',
+                    owner: { name: 'Sarah Analyst' },
+                    lastActivity: 'Just now'
+                };
+
+                return (
+                    <div className="space-y-3">
+                        <DealCard deal={deal} isNew={true} />
+                    </div>
+                );
+            }
+
+            // Show loading during execution
+            if (status === "executing") {
+                return <div className="text-slate-500">Creating deal...</div>;
+            }
+
+            return null;
         },
     });
 

@@ -460,17 +460,16 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         />
                     )}
 
-                    {/* Attached Files Preview */}
-                    {attachedFiles.length > 0 && (
-                        <div className="space-y-2">
-                            {attachedFiles.map((attachedFile) => (
-                                <FilePreviewCard
-                                    key={attachedFile.id}
-                                    file={attachedFile.file}
-                                    uploadProgress={attachedFile.uploadProgress}
-                                    status={attachedFile.status}
-                                    onRemove={() => handleRemoveFile(attachedFile.id)}
-                                    errorMessage={attachedFile.errorMessage}
+                    {/* Pending Files Preview */}
+                    {pendingFiles.length > 0 && (
+                        <div className="px-6 pb-4 space-y-2">
+                            {pendingFiles.map((file, idx) => (
+                                <PendingFilePreview
+                                    key={`${file.name}-${idx}`}
+                                    file={file}
+                                    onRemove={() => {
+                                        setPendingFiles(prev => prev.filter((_, i) => i !== idx));
+                                    }}
                                 />
                             ))}
                         </div>
@@ -491,6 +490,21 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             </button>
                         ))}
                     </div>
+
+                    {/* Pending Files Preview */}
+                    {pendingFiles.length > 0 && (
+                        <div className="px-6 pb-4 space-y-2">
+                            {pendingFiles.map((file, idx) => (
+                                <PendingFilePreview
+                                    key={`${file.name}-${idx}`}
+                                    file={file}
+                                    onRemove={() => {
+                                        setPendingFiles(prev => prev.filter((_, i) => i !== idx));
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    )}
 
                     {/* Input Bar - Always visible at bottom */}
                     <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all p-2">
@@ -707,17 +721,16 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             />
                         )}
 
-                        {/* Attached Files Preview */}
-                        {attachedFiles.length > 0 && (
+                        {/* Pending Files Preview */}
+                        {pendingFiles.length > 0 && (
                             <div className="space-y-2 max-h-40 overflow-y-auto">
-                                {attachedFiles.map((attachedFile) => (
-                                    <FilePreviewCard
-                                        key={attachedFile.id}
-                                        file={attachedFile.file}
-                                        uploadProgress={attachedFile.uploadProgress}
-                                        status={attachedFile.status}
-                                        onRemove={() => handleRemoveFile(attachedFile.id)}
-                                        errorMessage={attachedFile.errorMessage}
+                                {pendingFiles.map((file, idx) => (
+                                    <PendingFilePreview
+                                        key={`${file.name}-${idx}`}
+                                        file={file}
+                                        onRemove={() => {
+                                            setPendingFiles(prev => prev.filter((_, i) => i !== idx));
+                                        }}
                                     />
                                 ))}
                             </div>
