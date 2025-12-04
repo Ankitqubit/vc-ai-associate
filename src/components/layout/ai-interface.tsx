@@ -21,6 +21,16 @@ import { useSafeDealState } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
 import { useSelection } from "@/lib/contexts/selection-context";
 import { ContextCard } from "@/components/chat/ContextCard";
+import { FileUploadZone } from "@/components/deals/FileUploadZone";
+import { FilePreviewCard } from "@/components/deals/FilePreviewCard";
+
+interface AttachedFile {
+    file: File;
+    id: string;
+    uploadProgress: number;
+    status: 'uploading' | 'parsing' | 'success' | 'error';
+    errorMessage?: string;
+}
 
 // Wrapper component to fetch deals for comparison
 function DealComparisonWrapper({ dealIds }: { dealIds: string[] }) {
@@ -55,7 +65,10 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const [isVoiceListening, setIsVoiceListening] = useState(false);
     const [isAISpeaking, setIsAISpeaking] = useState(false);
     const [isChatActive, setIsChatActive] = useState(false);
+    const [attachedFiles, setAttachedFiles] = useState<AttachedFile[]>([]);
+    const [isDragging, setIsDragging] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const dealState = useSafeDealState();
     const deal = dealState?.deal;
     const { selectedText, selectionSource, clearSelection } = useSelection();
@@ -127,6 +140,103 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const handleVoiceConversation = () => {
         setIsVoiceMode(true);
         setIsVoiceListening(true);
+    };
+
+    // File upload handlers
+    const handleFileDrop = (files: File[]) => {
+        const newFiles: AttachedFile[] = files.map(file => ({
+            file,
+            id: `${Date.now()}-${Math.random()}`,
+            uploadProgress: 0,
+            status: 'uploading' as const,
+        }));
+
+        setAttachedFiles(prev => [...prev, ...newFiles]);
+        setIsDragging(false);
+
+        newFiles.forEach((attachedFile) => {
+            simulateUpload(attachedFile.id);
+        });
+    };
+
+    const simulateUpload = (fileId: string) => {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += 10;
+            setAttachedFiles(prev =>
+                prev.map(f =>
+                    f.id === fileId
+                        ? { ...f, uploadProgress: progress }
+                        : f
+                )
+            );
+
+            if (progress >= 100) {
+                clearInterval(interval);
+                setTimeout(() => {
+                    setAttachedFiles(prev =>
+                        prev.map(f =>
+                            f.id === fileId
+                                ? { ...f, status: 'parsing' }
+                                : f
+                        )
+                    );
+
+                    setTimeout(() => {
+                        setAttachedFiles(prev =>
+                            prev.map(f =>
+                                f.id === fileId
+                                    ? { ...f, status: 'success' }
+                                    : f
+                            )
+                        );
+
+                        const file = attachedFiles.find(f => f.id === fileId);
+                        if (file) {
+                            appendMessage(new TextMessage({
+                                content: `I've analyzed ${file.file.name}. Here's what I found:\n\n📊 **Company**: Acme Corp\n💰 **MRR**: $450K (+15% MoM)\n👥 **Team**: 12 people\n📍 **Location**: San Francisco, CA\n\nShould I create a deal for this company?`,
+                                role: Role.Assistant,
+                            }));
+                        }
+                    }, 2000);
+                }, 500);
+            }
+        }, 200);
+    };
+
+    const handleRemoveFile = (fileId: string) => {
+        setAttachedFiles(prev => prev.filter(f => f.id !== fileId));
+    };
+
+    const handlePaperclipClick = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length > 0) {
+            handleFileDrop(files);
+        }
+        e.target.value = '';
+    };
+
+    const handleDragEnter = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setIsDragging(true);
+    };
+
+    const handleDragLeave = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.currentTarget === e.target) {
+            setIsDragging(false);
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
     };
 
     // Helper to check if a message is from the user
@@ -289,7 +399,28 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         const hasChatHistory = visibleMessages.length > 0;
 
         return (
-            <div className={cn("flex flex-col h-full max-w-4xl mx-auto px-6", className)}>
+            <div
+                className={cn("flex flex-col h-full max-w-4xl mx-auto px-6 relative", className)}
+                onDragEnter={handleDragEnter}
+                onDragLeave={handleDragLeave}
+                onDragOver={handleDragOver}
+            >
+                {/* File Upload Zone Overlay */}
+                <FileUploadZone
+                    isActive={isDragging}
+                    onDrop={handleFileDrop}
+                />
+
+                {/* Hidden File Input */}
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf,.pptx,.ppt"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileInputChange}
+                />
+
                 {/* Chat Messages Area - Flex-1 with scroll */}
                 <div className="flex-1 overflow-y-auto py-6">
                     <div className="space-y-4">
@@ -347,6 +478,22 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                         />
                     )}
 
+                    {/* Attached Files Preview */}
+                    {attachedFiles.length > 0 && (
+                        <div className="space-y-2">
+                            {attachedFiles.map((attachedFile) => (
+                                <FilePreviewCard
+                                    key={attachedFile.id}
+                                    file={attachedFile.file}
+                                    uploadProgress={attachedFile.uploadProgress}
+                                    status={attachedFile.status}
+                                    onRemove={() => handleRemoveFile(attachedFile.id)}
+                                    errorMessage={attachedFile.errorMessage}
+                                />
+                            ))}
+                        </div>
+                    )}
+
                     {/* Quick Action Suggestions - Hidden when chat is active */}
                     <div className={cn(
                         "flex justify-center gap-3 transition-all duration-500 ease-in-out",
@@ -365,7 +512,12 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
                     {/* Input Bar - Always visible at bottom */}
                     <div className="relative flex items-center bg-white border border-slate-200 rounded-2xl shadow-lg focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all p-2">
-                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-400 hover:text-indigo-600 ml-1"
+                            onClick={handlePaperclipClick}
+                        >
                             <Paperclip className="h-5 w-5" />
                         </Button>
                         <input
@@ -431,19 +583,40 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     }
 
     return (
-        <aside className={cn(
-            "bg-white shadow-2xl transition-all duration-500 ease-in-out flex flex-col overflow-hidden border border-slate-200/60 backdrop-blur-xl",
-            // Only apply fixed positioning if NOT provided in className (or if layout implies it and className doesn't override)
-            // Actually, let's make it fixed by default for floating/sidebar unless overridden
-            !className && "fixed z-40",
-            !className && layout === "floating" && "bottom-6 right-6 rounded-2xl",
-            !className && layout === "sidebar" && "top-0 right-0 h-screen border-l",
+        <aside
+            className={cn(
+                "bg-white shadow-2xl transition-all duration-500 ease-in-out flex flex-col overflow-hidden border border-slate-200/60 backdrop-blur-xl relative",
+                // Only apply fixed positioning if NOT provided in className (or if layout implies it and className doesn't override)
+                // Actually, let's make it fixed by default for floating/sidebar unless overridden
+                !className && "fixed z-40",
+                !className && layout === "floating" && "bottom-6 right-6 rounded-2xl",
+                !className && layout === "sidebar" && "top-0 right-0 h-screen border-l",
 
-            isExpanded ? "w-[600px] h-[80vh]" : "w-[400px]",
-            layout === "sidebar" ? "h-screen" : "h-[600px]",
-            isVoiceMode && "bg-gradient-to-b from-indigo-50/50 to-white",
-            className // Allow overriding everything
-        )}>
+                isExpanded ? "w-[600px] h-[80vh]" : "w-[400px]",
+                layout === "sidebar" ? "h-screen" : "h-[600px]",
+                isVoiceMode && "bg-gradient-to-b from-indigo-50/50 to-white",
+                className // Allow overriding everything
+            )}
+            onDragEnter={handleDragEnter}
+            onDragLeave={handleDragLeave}
+            onDragOver={handleDragOver}
+        >
+            {/* File Upload Zone Overlay */}
+            <FileUploadZone
+                isActive={isDragging}
+                onDrop={handleFileDrop}
+            />
+
+            {/* Hidden File Input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.pptx,.ppt"
+                multiple
+                className="hidden"
+                onChange={handleFileInputChange}
+            />
+
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-white/50 backdrop-blur-md sticky top-0 z-10">
                 <div className="flex items-center space-x-3">
@@ -552,8 +725,29 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                             />
                         )}
 
+                        {/* Attached Files Preview */}
+                        {attachedFiles.length > 0 && (
+                            <div className="space-y-2 max-h-40 overflow-y-auto">
+                                {attachedFiles.map((attachedFile) => (
+                                    <FilePreviewCard
+                                        key={attachedFile.id}
+                                        file={attachedFile.file}
+                                        uploadProgress={attachedFile.uploadProgress}
+                                        status={attachedFile.status}
+                                        onRemove={() => handleRemoveFile(attachedFile.id)}
+                                        errorMessage={attachedFile.errorMessage}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
                         <div className="relative flex items-center bg-slate-50 border border-slate-200 rounded-2xl focus-within:ring-2 focus-within:ring-indigo-500/20 focus-within:border-indigo-500 transition-all shadow-inner">
-                        <Button variant="ghost" size="icon" className="text-slate-400 hover:text-indigo-600 ml-1 flex-shrink-0">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-400 hover:text-indigo-600 ml-1 flex-shrink-0"
+                            onClick={handlePaperclipClick}
+                        >
                             <Paperclip className="h-5 w-5" />
                         </Button>
                         <input
