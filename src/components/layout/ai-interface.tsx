@@ -63,6 +63,7 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     const [isDragging, setIsDragging] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const recognitionRef = useRef<any>(null);
     const dealState = useSafeDealState();
     const deal = dealState?.deal;
     const { selectedText, selectionSource, clearSelection } = useSelection();
@@ -206,14 +207,66 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
     };
 
     const handleDictate = () => {
-        setIsDictating(!isDictating);
-        // In a real app, this would trigger browser speech recognition
-        if (!isDictating) {
-            setTimeout(() => {
-                setInputValue("Update the MRR to $50k");
-                setIsDictating(false);
-            }, 2000);
+        if (isDictating) {
+            // Stop dictation
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
+            setIsDictating(false);
+            return;
         }
+
+        // Check if browser supports speech recognition
+        const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+
+        if (!SpeechRecognition) {
+            alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+            return;
+        }
+
+        // Initialize speech recognition
+        const recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+            setIsDictating(true);
+        };
+
+        recognition.onresult = (event: any) => {
+            let interimTranscript = '';
+            let finalTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            if (finalTranscript) {
+                setInputValue((prev) => prev + finalTranscript);
+            }
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error:', event.error);
+            setIsDictating(false);
+
+            if (event.error === 'not-allowed') {
+                alert('Microphone access denied. Please allow microphone access in your browser settings.');
+            }
+        };
+
+        recognition.onend = () => {
+            setIsDictating(false);
+        };
+
+        recognitionRef.current = recognition;
+        recognition.start();
     };
 
     const handleVoiceConversation = () => {
