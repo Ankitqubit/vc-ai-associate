@@ -3,6 +3,7 @@
 import { useCopilotAction } from "@copilotkit/react-core";
 import { useRouter } from "next/navigation";
 import { DealCard } from "@/components/copilot/DealCard";
+import { AnalyzingDeckCard } from "@/components/copilot/AnalyzingDeckCard";
 
 /**
  * Deal Intake Actions - Handles creation of new deals from uploaded decks
@@ -40,8 +41,8 @@ This is STEP 2 of the workflow.`,
             },
         ],
         handler: async ({ fileName }) => {
-            // Simulate processing time
-            await new Promise(resolve => setTimeout(resolve, 2000));
+            // Simulate processing time (extended for the animated progress)
+            await new Promise(resolve => setTimeout(resolve, 6000));
 
             // Return mock analysis (hardcoded for now)
             return `✅ **Analysis Complete**
@@ -57,6 +58,12 @@ I've extracted the following information from the pitch deck:
 📅 **Founded**: 2023
 
 Would you like me to create a deal for this company?`;
+        },
+        render: ({ status, args }: any) => {
+            if (status === "inProgress") {
+                return <AnalyzingDeckCard fileName={args.fileName || "pitch_deck.pdf"} />;
+            }
+            return null;
         },
     });
 
