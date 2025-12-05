@@ -768,6 +768,7 @@ export function AIInterface({
                                 <PendingFilePreview
                                     key={`${file.name}-${idx}`}
                                     file={file}
+                                    uploading={true}
                                     onRemove={() => {
                                         setPendingFiles(prev => prev.filter((_, i) => i !== idx));
                                     }}
@@ -1005,6 +1006,7 @@ export function AIInterface({
                                     <PendingFilePreview
                                         key={`${file.name}-${idx}`}
                                         file={file}
+                                        uploading={true}
                                         onRemove={() => {
                                             setPendingFiles(prev => prev.filter((_, i) => i !== idx));
                                         }}
