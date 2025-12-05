@@ -1,9 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useCopilotAction } from "@copilotkit/react-core";
 import { useRouter } from "next/navigation";
 import { DealCard } from "@/components/copilot/DealCard";
 import { AnalyzingDeckCard } from "@/components/copilot/AnalyzingDeckCard";
+import { getRandomCompany, generateFitScoreReason, MockCompany } from "@/lib/data/mock-companies";
 
 /**
  * Deal Intake Actions - Handles creation of new deals from uploaded decks
@@ -17,6 +19,9 @@ import { AnalyzingDeckCard } from "@/components/copilot/AnalyzingDeckCard";
  */
 export function DealIntakeActions() {
     const router = useRouter();
+
+    // Store the last analyzed company so we can use it in create_deal_from_deck
+    const [lastAnalyzedCompany, setLastAnalyzedCompany] = useState<MockCompany | null>(null);
 
     // Simulate deck analysis
     useCopilotAction({
@@ -44,18 +49,25 @@ This is STEP 2 of the workflow.`,
             // Simulate processing time (extended for the animated progress)
             await new Promise(resolve => setTimeout(resolve, 6000));
 
-            // Return mock analysis (hardcoded for now)
+            // Get random company data for realistic variation
+            const company = getRandomCompany();
+            setLastAnalyzedCompany(company); // Store for later use
+
+            // Return analysis with varied data
             return `✅ **Analysis Complete**
 
 I've extracted the following information from the pitch deck:
 
-📊 **Company**: Acme Corp
-📝 **Description**: B2B SaaS platform for logistics automation
-💰 **MRR**: $450K (+15% MoM)
-👥 **Team**: 12 people
-📍 **Location**: San Francisco, CA
-🏢 **Industry**: B2B SaaS - Logistics Automation
-📅 **Founded**: 2023
+📊 **Company**: ${company.name}
+📝 **Description**: ${company.description}
+💰 **MRR**: ${company.mrr}
+👥 **Team**: ${company.teamSize} people
+📍 **Location**: ${company.location}
+🏢 **Industry**: ${company.industry}
+📅 **Founded**: ${company.founded}
+🎯 **Fit Score**: ${company.fitScore}/100
+
+**Analysis**: ${generateFitScoreReason(company)}
 
 Would you like me to create a deal for this company?`;
         },
@@ -181,27 +193,36 @@ Click the card below to view full details.`;
         render: ({ status, result, args }: any) => {
             console.log('🔍 render function called!', { status, result, args });
 
-            const { companyName, description, mrr, teamSize, location, stage } = args;
+            // Use stored company data if available, otherwise use args
+            const company = lastAnalyzedCompany || {
+                name: args.companyName,
+                description: args.description,
+                mrr: args.mrr,
+                teamSize: args.teamSize,
+                location: args.location,
+                fitScore: 78,
+                stage: args.stage
+            };
 
             const deal = {
                 id: 'deal-1', // Link to existing mock deal page
                 company: {
-                    name: companyName,
-                    description: description,
-                    location: location || 'N/A',
-                    teamSize: teamSize || 0,
+                    name: company.name,
+                    description: company.description,
+                    location: company.location || 'N/A',
+                    teamSize: company.teamSize || 0,
                 },
                 metrics: [
                     {
                         id: '1',
                         name: 'MRR',
-                        value: mrr || '$0',
+                        value: company.mrr || '$0',
                         trend: '+15% MoM'
                     },
                     {
                         id: '2',
                         name: 'ARR',
-                        value: mrr ? `$${(parseInt(mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
+                        value: company.mrr ? `$${(parseInt(company.mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
                         trend: null
                     },
                     {
@@ -211,8 +232,8 @@ Click the card below to view full details.`;
                         trend: null
                     }
                 ],
-                fitScore: { score: 78 },
-                stage: stage || 'Inbound',
+                fitScore: { score: company.fitScore || 78 },
+                stage: company.stage || 'Inbound',
                 source: 'Pitch Deck Upload',
                 owner: { name: 'Sarah Analyst' },
                 lastActivity: 'Just now'
