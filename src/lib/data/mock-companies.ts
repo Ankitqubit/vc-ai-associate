@@ -2,6 +2,35 @@
  * Mock company data for realistic deck analysis simulation
  */
 
+export interface EnrichmentData {
+  logo?: string;
+  website?: string;
+  linkedin?: string;
+  twitter?: string;
+  crunchbase?: string;
+  founders: {
+    name: string;
+    title: string;
+    linkedin?: string;
+    background: string;
+  }[];
+  competitors: string[];
+  recentNews: {
+    title: string;
+    source: string;
+    date: string;
+    url?: string;
+  }[];
+  funding: {
+    totalRaised: string;
+    lastRound: string;
+    lastRoundDate: string;
+    investors: string[];
+  };
+  techStack?: string[];
+  employeeGrowth?: string;
+}
+
 export interface MockCompany {
   name: string;
   description: string;
@@ -17,6 +46,7 @@ export interface MockCompany {
   solution: string;
   traction: string;
   marketSize: string;
+  enrichment?: EnrichmentData;
 }
 
 export const MOCK_COMPANIES: MockCompany[] = [
@@ -34,7 +64,52 @@ export const MOCK_COMPANIES: MockCompany[] = [
     problem: "Data teams spend 60% of time on pipeline maintenance",
     solution: "No-code data pipeline builder with AI-powered optimization",
     traction: "15 paying customers, 120% NRR",
-    marketSize: "TAM: $12B"
+    marketSize: "TAM: $12B",
+    enrichment: {
+      website: "https://dataflow-ai.com",
+      linkedin: "https://linkedin.com/company/dataflow-ai",
+      twitter: "https://twitter.com/dataflowai",
+      founders: [
+        {
+          name: "Sarah Chen",
+          title: "CEO & Co-Founder",
+          linkedin: "https://linkedin.com/in/sarahchen",
+          background: "Ex-Databricks Staff Engineer, 8 years building data infrastructure"
+        },
+        {
+          name: "Marcus Johnson",
+          title: "CTO & Co-Founder",
+          linkedin: "https://linkedin.com/in/marcusjohnson",
+          background: "Former Google Cloud Data Engineer, PhD in Distributed Systems"
+        }
+      ],
+      competitors: ["Fivetran", "Airbyte", "Matillion", "Stitch Data"],
+      recentNews: [
+        {
+          title: "DataFlow AI raises $4M seed round led by Sequoia",
+          source: "TechCrunch",
+          date: "2024-11-15",
+        },
+        {
+          title: "DataFlow AI announces partnership with Snowflake",
+          source: "VentureBeat",
+          date: "2024-10-20",
+        },
+        {
+          title: "How DataFlow AI is revolutionizing data pipelines with AI",
+          source: "Forbes",
+          date: "2024-09-08",
+        }
+      ],
+      funding: {
+        totalRaised: "$4.5M",
+        lastRound: "Seed",
+        lastRoundDate: "Nov 2024",
+        investors: ["Sequoia Capital", "Y Combinator", "Operator Partners"]
+      },
+      techStack: ["Python", "TypeScript", "Kubernetes", "PostgreSQL", "Apache Airflow"],
+      employeeGrowth: "+60% in last 6 months"
+    }
   },
   {
     name: "CloudSync Pro",
@@ -50,7 +125,47 @@ export const MOCK_COMPANIES: MockCompany[] = [
     problem: "DevOps teams manually manage 100+ cloud resources",
     solution: "Unified platform for multi-cloud orchestration and monitoring",
     traction: "42 enterprise customers, $1.2M ARR growth in Q4",
-    marketSize: "TAM: $28B"
+    marketSize: "TAM: $28B",
+    enrichment: {
+      website: "https://cloudsync.pro",
+      linkedin: "https://linkedin.com/company/cloudsync-pro",
+      twitter: "https://twitter.com/cloudsyncpro",
+      founders: [
+        {
+          name: "James Park",
+          title: "CEO & Founder",
+          linkedin: "https://linkedin.com/in/jamespark",
+          background: "Ex-HashiCorp Principal Engineer, 10+ years in infrastructure"
+        },
+        {
+          name: "Lisa Martinez",
+          title: "VP Engineering",
+          linkedin: "https://linkedin.com/in/lisamartinez",
+          background: "Former AWS Solutions Architect, DevOps expert"
+        }
+      ],
+      competitors: ["Terraform Cloud", "Pulumi", "Spacelift", "env0"],
+      recentNews: [
+        {
+          title: "CloudSync Pro closes $12M Series A led by Accel",
+          source: "TechCrunch",
+          date: "2024-08-22",
+        },
+        {
+          title: "CloudSync Pro adds support for Azure and GCP",
+          source: "The New Stack",
+          date: "2024-07-10",
+        }
+      ],
+      funding: {
+        totalRaised: "$16M",
+        lastRound: "Series A",
+        lastRoundDate: "Aug 2024",
+        investors: ["Accel", "Bessemer Venture Partners", "Bloomberg Beta"]
+      },
+      techStack: ["Go", "React", "Kubernetes", "Terraform", "Docker"],
+      employeeGrowth: "+40% in last 6 months"
+    }
   },
   {
     name: "HealthTrack",
@@ -82,7 +197,52 @@ export const MOCK_COMPANIES: MockCompany[] = [
     problem: "Startups waste $50K+/month on manual financial operations",
     solution: "Automated AP/AR, forecasting, and compliance in one platform",
     traction: "65 customers, 30% MoM growth, partnerships with 3 major banks",
-    marketSize: "TAM: $15B"
+    marketSize: "TAM: $15B",
+    enrichment: {
+      website: "https://finopshub.com",
+      linkedin: "https://linkedin.com/company/finops-hub",
+      twitter: "https://twitter.com/finopshub",
+      founders: [
+        {
+          name: "David Kim",
+          title: "CEO & Co-Founder",
+          linkedin: "https://linkedin.com/in/davidkim",
+          background: "Ex-Stripe Finance Lead, CPA with 12 years in FinTech"
+        },
+        {
+          name: "Amanda Wu",
+          title: "COO & Co-Founder",
+          linkedin: "https://linkedin.com/in/amandawu",
+          background: "Former Goldman Sachs VP, built fintech products for startups"
+        }
+      ],
+      competitors: ["Ramp", "Brex", "Pilot", "Rho"],
+      recentNews: [
+        {
+          title: "FinOps Hub raises $8M seed to automate startup finance",
+          source: "Bloomberg",
+          date: "2024-10-05",
+        },
+        {
+          title: "FinOps Hub partners with Silicon Valley Bank",
+          source: "Business Insider",
+          date: "2024-09-12",
+        },
+        {
+          title: "How FinOps Hub is saving startups $50K per month",
+          source: "Forbes",
+          date: "2024-08-18",
+        }
+      ],
+      funding: {
+        totalRaised: "$8.5M",
+        lastRound: "Seed",
+        lastRoundDate: "Oct 2024",
+        investors: ["Andreessen Horowitz", "Kleiner Perkins", "SVB Capital"]
+      },
+      techStack: ["React", "Node.js", "PostgreSQL", "Stripe", "Plaid"],
+      employeeGrowth: "+50% in last 6 months"
+    }
   },
   {
     name: "EduLearn",
@@ -114,7 +274,64 @@ export const MOCK_COMPANIES: MockCompany[] = [
     problem: "Enterprises take 200+ days to detect security breaches",
     solution: "Real-time AI threat detection and automated response",
     traction: "28 enterprise customers, SOC 2 certified, 99.9% threat detection",
-    marketSize: "TAM: $45B"
+    marketSize: "TAM: $45B",
+    enrichment: {
+      website: "https://secureshield.io",
+      linkedin: "https://linkedin.com/company/secureshield",
+      twitter: "https://twitter.com/secureshield",
+      crunchbase: "https://crunchbase.com/organization/secureshield",
+      founders: [
+        {
+          name: "Dr. Rachel Kim",
+          title: "CEO & Founder",
+          linkedin: "https://linkedin.com/in/rachelkim",
+          background: "Ex-Microsoft Security Principal, PhD in ML from Stanford"
+        },
+        {
+          name: "Tom Anderson",
+          title: "CTO & Co-Founder",
+          linkedin: "https://linkedin.com/in/tomanderson",
+          background: "Former Palantir Staff Engineer, built threat detection systems"
+        },
+        {
+          name: "Jennifer Lee",
+          title: "VP Product",
+          linkedin: "https://linkedin.com/in/jenniferlee",
+          background: "Ex-CrowdStrike Product Lead, 15 years in cybersecurity"
+        }
+      ],
+      competitors: ["CrowdStrike", "SentinelOne", "Palo Alto Networks", "Darktrace"],
+      recentNews: [
+        {
+          title: "SecureShield raises $18M Series A from Lightspeed Venture",
+          source: "TechCrunch",
+          date: "2024-11-01",
+        },
+        {
+          title: "SecureShield achieves SOC 2 Type II certification",
+          source: "SecurityWeek",
+          date: "2024-09-25",
+        },
+        {
+          title: "Fortune 500 companies adopting SecureShield's AI platform",
+          source: "Forbes",
+          date: "2024-08-30",
+        },
+        {
+          title: "SecureShield detects zero-day exploit in major breach",
+          source: "Wired",
+          date: "2024-07-15",
+        }
+      ],
+      funding: {
+        totalRaised: "$23M",
+        lastRound: "Series A",
+        lastRoundDate: "Nov 2024",
+        investors: ["Lightspeed Venture Partners", "Greylock Partners", "Cyberstarts"]
+      },
+      techStack: ["Python", "Go", "React", "TensorFlow", "Elasticsearch", "Kafka"],
+      employeeGrowth: "+75% in last 6 months"
+    }
   },
   {
     name: "FarmTech Solutions",

@@ -20,6 +20,7 @@ export interface Company {
   location: string;
   foundingDate?: string;
   teamSize?: number;
+  enrichment?: any; // EnrichmentData from mock-companies.ts
 }
 
 export interface FitScore {

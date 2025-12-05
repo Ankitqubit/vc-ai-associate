@@ -12,6 +12,7 @@ import { DealHero } from "@/components/features/deal-hero";
 import { DealMetrics } from "@/components/features/deal-metrics";
 import { DealFitScore } from "@/components/features/deal-fit-score";
 import { DealTimeline } from "@/components/features/deal-timeline";
+import { DealEnrichment } from "@/components/features/deal-enrichment";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Deal } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,7 @@ export function DealPageContent({ children, deal }: DealPageContentProps) {
                                                 <DealFitScore />
                                                 <DealMetrics />
                                             </div>
+                                            <DealEnrichment />
                                         </TabsContent>
 
                                         <TabsContent value="timeline">
