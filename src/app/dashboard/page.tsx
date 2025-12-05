@@ -10,53 +10,60 @@ import { cn } from "@/lib/utils";
 
 import { DealStateProvider } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
-import { ConversationHistory, type Conversation } from "@/components/chat/ConversationHistory";
+import { ConversationHistory } from "@/components/chat/ConversationHistory";
+import { Conversation } from "@/lib/types/conversation";
+import {
+    getAllConversations,
+    createConversation,
+    deleteConversation,
+    renameConversation,
+    togglePinConversation
+} from "@/lib/storage/conversation-storage";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
     const [isChatActive, setIsChatActive] = useState(false);
+    const [conversations, setConversations] = useState<Conversation[]>([]);
     const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
+    const [isHistoryCollapsed, setIsHistoryCollapsed] = useState(false);
 
-    // Mock conversations data (replace with real data later)
-    const [conversations, setConversations] = useState<Conversation[]>([
-        {
-            id: "1",
-            title: "Deal Analysis Discussion",
-            preview: "Tell me about the Acme Corp deal...",
-            timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
-        },
-        {
-            id: "2",
-            title: "Market Research",
-            preview: "What's the current state of the SaaS market?",
-            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000) // 1 day ago
-        },
-        {
-            id: "3",
-            title: "Investment Memo Draft",
-            preview: "Help me draft an investment memo for...",
-            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000) // 3 days ago
-        }
-    ]);
+    // Load conversations on mount
+    useEffect(() => {
+        const loaded = getAllConversations();
+        setConversations(loaded);
+    }, []);
 
     // Use a default deal for the dashboard context, or null if supported
     const defaultDeal = getDealById("deal-1");
 
     const handleNewConversation = () => {
-        const newConv: Conversation = {
-            id: Date.now().toString(),
-            title: "New Chat",
-            preview: "",
-            timestamp: new Date()
-        };
-        setConversations([newConv, ...conversations]);
+        const newConv = createConversation();
+        setConversations(getAllConversations());
         setActiveConversationId(newConv.id);
+        setIsChatActive(true);
+    };
+
+    const handleSelectConversation = (id: string) => {
+        setActiveConversationId(id);
+        setIsChatActive(true);
     };
 
     const handleDeleteConversation = (id: string) => {
-        setConversations(conversations.filter(c => c.id !== id));
+        deleteConversation(id);
+        setConversations(getAllConversations());
         if (activeConversationId === id) {
             setActiveConversationId(undefined);
         }
+    };
+
+    const handleRenameConversation = (id: string, newTitle: string) => {
+        renameConversation(id, newTitle);
+        setConversations(getAllConversations());
+    };
+
+    const handleTogglePin = (id: string) => {
+        togglePinConversation(id);
+        setConversations(getAllConversations());
     };
 
     return (
@@ -76,15 +83,19 @@ export default function DashboardPage() {
                     isChatActive ? "opacity-100" : "opacity-0"
                 )} />
 
-                {/* Conversation History Sidebar - Only shown when chat is active */}
+                {/* Conversation History Sidebar - Shown when chat is active */}
                 {isChatActive && (
-                    <div className="relative z-10 animate-in slide-in-from-left duration-300">
+                    <div className="relative z-10 flex-shrink-0 animate-in slide-in-from-left duration-300">
                         <ConversationHistory
                             conversations={conversations}
                             activeConversationId={activeConversationId}
-                            onSelectConversation={setActiveConversationId}
+                            onSelectConversation={handleSelectConversation}
                             onNewConversation={handleNewConversation}
                             onDeleteConversation={handleDeleteConversation}
+                            onRenameConversation={handleRenameConversation}
+                            onTogglePin={handleTogglePin}
+                            isCollapsed={isHistoryCollapsed}
+                            onToggleCollapse={() => setIsHistoryCollapsed(!isHistoryCollapsed)}
                         />
                     </div>
                 )}
