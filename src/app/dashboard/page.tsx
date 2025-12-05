@@ -17,7 +17,8 @@ import {
     createConversation,
     deleteConversation,
     renameConversation,
-    togglePinConversation
+    togglePinConversation,
+    addMessageToConversation
 } from "@/lib/storage/conversation-storage";
 import { useEffect } from "react";
 
@@ -63,6 +64,17 @@ export default function DashboardPage() {
 
     const handleTogglePin = (id: string) => {
         togglePinConversation(id);
+        setConversations(getAllConversations());
+    };
+
+    const handleConversationCreate = (firstMessage: string) => {
+        const newConv = createConversation(firstMessage);
+        setConversations(getAllConversations());
+        setActiveConversationId(newConv.id);
+    };
+
+    const handleMessageSent = (conversationId: string, role: 'user' | 'assistant', content: string) => {
+        addMessageToConversation(conversationId, role, content);
         setConversations(getAllConversations());
     };
 
@@ -198,6 +210,9 @@ export default function DashboardPage() {
                         layout="center"
                         className="flex-1 flex flex-col"
                         onChatStateChange={setIsChatActive}
+                        activeConversationId={activeConversationId}
+                        onConversationCreate={handleConversationCreate}
+                        onMessageSent={handleMessageSent}
                     />
 
                 </main>

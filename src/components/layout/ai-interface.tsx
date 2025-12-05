@@ -26,6 +26,7 @@ import { FileUploadZone } from "@/components/deals/FileUploadZone";
 import { ChatFileAttachment } from "@/components/chat/ChatFileAttachment";
 import { AIThinking } from "@/components/ui/AIThinking";
 import { PendingFilePreview } from "@/components/chat/PendingFilePreview";
+import { getConversationById } from "@/lib/storage/conversation-storage";
 
 // Wrapper component to fetch deals for comparison
 function DealComparisonWrapper({ dealIds }: { dealIds: string[] }) {
@@ -48,9 +49,19 @@ interface AIInterfaceProps {
     layout?: "floating" | "sidebar" | "center";
     className?: string;
     onChatStateChange?: (isActive: boolean) => void;
+    activeConversationId?: string;
+    onConversationCreate?: (firstMessage: string) => void;
+    onMessageSent?: (conversationId: string, role: 'user' | 'assistant', content: string) => void;
 }
 
-export function AIInterface({ layout = "floating", className, onChatStateChange }: AIInterfaceProps) {
+export function AIInterface({
+    layout = "floating",
+    className,
+    onChatStateChange,
+    activeConversationId,
+    onConversationCreate,
+    onMessageSent
+}: AIInterfaceProps) {
     const [isOpen, setIsOpen] = useState(true);
     const [isExpanded, setIsExpanded] = useState(false);
     const [inputValue, setInputValue] = useState("");
@@ -142,6 +153,34 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
         }
     }, [isLoading]);
 
+    // Save AI responses to conversation
+    useEffect(() => {
+        if (!activeConversationId || !onMessageSent || visibleMessages.length === 0) return;
+
+        // Get the last message
+        const lastMessage = visibleMessages[visibleMessages.length - 1];
+
+        // Check if it's an assistant message
+        if ((lastMessage as any).role === 'assistant' && (lastMessage as any).content) {
+            const content = String((lastMessage as any).content);
+            // Save assistant message
+            onMessageSent(activeConversationId, 'assistant', content);
+        }
+    }, [visibleMessages, activeConversationId, onMessageSent]);
+
+    // Load messages when conversation changes
+    useEffect(() => {
+        if (!activeConversationId) return;
+
+        const conversation = getConversationById(activeConversationId);
+        if (!conversation) return;
+
+        // TODO: Load conversation messages into visibleMessages
+        // This requires CopilotKit to support loading initial messages dynamically
+        // For now, this is a placeholder
+        console.log('[AIInterface] Loaded conversation:', conversation.title, 'with', conversation.messages.length, 'messages');
+    }, [activeConversationId]);
+
     // Helper function to format file size
     const formatFileSize = (bytes: number): string => {
         if (bytes === 0) return '0 Bytes';
@@ -159,6 +198,11 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
         // Build message content
         let messageContent = inputValue || "Here's a file";
+
+        // If this is the first message and no active conversation, create one
+        if (!activeConversationId && visibleMessages.length === 0 && onConversationCreate) {
+            onConversationCreate(messageContent);
+        }
 
         // Add context if available
         if (selectedText) {
@@ -203,6 +247,11 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                 content: messageContent,
                 role: Role.User,
             }));
+        }
+
+        // Save user message to conversation
+        if (activeConversationId && onMessageSent) {
+            onMessageSent(activeConversationId, 'user', messageContent);
         }
 
         // Clear input and context
