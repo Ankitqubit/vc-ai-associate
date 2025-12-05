@@ -44,22 +44,15 @@ export function DealCard({ deal, loading, isNew }: DealCardProps) {
     return (
         <Link
             href={`/deals/${deal.id}`}
-            className={cn(
-                "block group relative rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 overflow-hidden cursor-pointer",
-                isNew && "animate-in slide-in-from-bottom-4 fade-in duration-700 shadow-lg hover:shadow-xl"
-            )}
+            className="block group relative rounded-lg border border-border/50 bg-gradient-to-br from-background/50 to-muted/30 backdrop-blur-sm hover:border-primary/50 transition-all duration-300 overflow-hidden cursor-pointer"
         >
-            {/* NEW badge with confetti effect */}
+            {/* NEW badge */}
             {isNew && (
-                <>
-                    <div className="absolute top-3 right-3 z-10 animate-in zoom-in duration-500 delay-300">
-                        <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
-                            NEW
-                        </span>
-                    </div>
-                    {/* Success glow effect */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 animate-pulse pointer-events-none" />
-                </>
+                <div className="absolute top-3 right-3 z-10">
+                    <span className="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-lg animate-pulse">
+                        NEW
+                    </span>
+                </div>
             )}
 
             {/* Header with gradient */}
