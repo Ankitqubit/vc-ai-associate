@@ -20,6 +20,7 @@ import { MemoGenerateCard } from "@/components/copilot/MemoGenerateCard";
 import { useSafeDealState } from "@/lib/contexts/deal-state-context";
 import { getDealById } from "@/lib/data/mock-db";
 import { useSelection } from "@/lib/contexts/selection-context";
+import { DealStage } from "@/lib/types";
 import { ContextCard } from "@/components/chat/ContextCard";
 import { FileUploadZone } from "@/components/deals/FileUploadZone";
 import { ChatFileAttachment } from "@/components/chat/ChatFileAttachment";
@@ -80,12 +81,12 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
 
         // Get last user message
         const lastUserMessage = [...visibleMessages].reverse().find(msg =>
-            msg.role === 'user' || msg.role === Role.User
+            (msg as any).role === 'user' || (msg as any).role === Role.User
         );
 
-        if (!lastUserMessage?.content) return 'processing';
+        if (!(lastUserMessage as any)?.content) return 'processing';
 
-        const content = String(lastUserMessage.content).toLowerCase();
+        const content = String((lastUserMessage as any).content).toLowerCase();
 
         // Check for file attachments or analysis keywords
         if (content.includes('[attached file:') ||
@@ -480,8 +481,10 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                     const newDeal = {
                         id: 'deal-1', // Link to existing mock deal page
                         company: {
+                            id: 'comp-new',
                             name: companyName,
                             description: description,
+                            website: '',
                             location: location || 'N/A',
                             teamSize: teamSize || 0,
                         },
@@ -490,26 +493,51 @@ export function AIInterface({ layout = "floating", className, onChatStateChange 
                                 id: '1',
                                 name: 'MRR',
                                 value: mrr || '$0',
-                                trend: '+15% MoM'
+                                trend: '+15% MoM',
+                                confidence: 'Medium' as const,
+                                source: 'Pitch Deck'
                             },
                             {
                                 id: '2',
                                 name: 'ARR',
                                 value: mrr ? `$${(parseInt(mrr.replace(/[^0-9]/g, '')) * 12)}K` : '$0',
-                                trend: null
+                                confidence: 'Medium' as const,
+                                source: 'Pitch Deck'
                             },
                             {
                                 id: '3',
                                 name: 'Burn',
                                 value: '$120K',
-                                trend: null
+                                confidence: 'Low' as const,
+                                source: 'Estimated'
                             }
                         ],
-                        fitScore: { score: 78 },
-                        stage: stage || 'Inbound',
+                        fitScore: {
+                            score: 78,
+                            rationale: 'Generated from pitch deck analysis',
+                            breakdown: {
+                                team: 75,
+                                market: 80,
+                                traction: 70,
+                                product: 85
+                            }
+                        },
+                        stage: (stage || 'Inbound') as DealStage,
                         source: 'Pitch Deck Upload',
                         owner: { name: 'Sarah Analyst' },
-                        lastActivity: 'Just now'
+                        lastActivity: new Date().toISOString(),
+                        activities: [
+                            {
+                                id: 'a-new-1',
+                                type: 'ai_action' as const,
+                                content: 'Created deal from pitch deck analysis',
+                                timestamp: new Date().toISOString(),
+                                author: {
+                                    name: 'AI Associate',
+                                    isAi: true
+                                }
+                            }
+                        ]
                     };
                     return <DealCard deal={newDeal} isNew={true} loading={status === "inProgress"} />;
                 case "show_metrics":

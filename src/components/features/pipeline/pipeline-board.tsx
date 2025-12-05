@@ -5,7 +5,7 @@ import { DndContext, DragOverlay, useSensor, useSensors, PointerSensor, DragStar
 import { SortableContext, horizontalListSortingStrategy } from "@dnd-kit/sortable";
 import { PipelineColumn } from "./pipeline-column";
 import { PipelineDealCard } from "./pipeline-deal-card";
-import { Deal } from "@/lib/types"; // Assuming types are here, will check
+import { Deal, DealStage } from "@/lib/types";
 import { getAllDeals } from "@/lib/data/mock-db";
 import { Loader2, Sparkles } from "lucide-react";
 
@@ -78,7 +78,7 @@ export function PipelineBoard() {
         if (!over) return;
 
         const dealId = active.id as string;
-        const newStage = over.id as string;
+        const newStage = over.id as DealStage;
 
         // Find the deal
         const deal = deals.find(d => d.id === dealId);

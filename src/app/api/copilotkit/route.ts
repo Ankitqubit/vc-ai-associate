@@ -15,7 +15,7 @@ export const POST = async (req: NextRequest) => {
 
     const runtime = new CopilotRuntime({
         actions: [],
-        instructions: `You are a helpful AI assistant for a VC firm specializing in deal intake.
+        systemMessage: `You are a helpful AI assistant for a VC firm specializing in deal intake.
 
 FILE DETECTION:
 - Files are indicated in messages with format: [ATTACHED FILE: "filename" (size, type)]
