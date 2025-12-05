@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Mic, Paperclip, ArrowUp, X, Maximize2, Minimize2, Headphones, Copy, ThumbsUp, ThumbsDown, Sparkles } from "lucide-react";
+import { Mic, Paperclip, ArrowUp, X, Maximize2, Minimize2, Headphones, Copy, ThumbsUp, ThumbsDown, Sparkles, Link2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -26,6 +26,7 @@ import { FileUploadZone } from "@/components/deals/FileUploadZone";
 import { ChatFileAttachment } from "@/components/chat/ChatFileAttachment";
 import { AIThinking } from "@/components/ui/AIThinking";
 import { PendingFilePreview } from "@/components/chat/PendingFilePreview";
+import { LinkUploadModal } from "@/components/deals/LinkUploadModal";
 import { getConversationById } from "@/lib/storage/conversation-storage";
 
 // Wrapper component to fetch deals for comparison
@@ -75,6 +76,7 @@ export function AIInterface({
     const [isDragging, setIsDragging] = useState(false);
     const [messageFeedback, setMessageFeedback] = useState<Record<string, 'up' | 'down' | null>>({});
     const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+    const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const recognitionRef = useRef<any>(null);
@@ -358,6 +360,18 @@ export function AIInterface({
 
     const handlePaperclipClick = () => {
         fileInputRef.current?.click();
+    };
+
+    const handleLinkUpload = (url: string) => {
+        // Simulate adding a "link file" to pending files
+        // In reality, this would fetch the file from the URL
+        const linkFile = new File(
+            [new Blob()],
+            url.split('/').pop() || 'document.pdf',
+            { type: 'application/pdf' }
+        );
+        setPendingFiles(prev => [...prev, linkFile]);
+        setInputValue(`Analyze this deck from: ${url}`);
     };
 
     const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -784,8 +798,18 @@ export function AIInterface({
                             size="icon"
                             className="text-slate-400 hover:text-indigo-600 ml-1"
                             onClick={handlePaperclipClick}
+                            title="Attach file"
                         >
                             <Paperclip className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-slate-400 hover:text-indigo-600"
+                            onClick={() => setIsLinkModalOpen(true)}
+                            title="Import from link"
+                        >
+                            <Link2 className="h-5 w-5" />
                         </Button>
                         <input
                             type="text"
@@ -1138,6 +1162,13 @@ export function AIInterface({
                     </div>
                 )}
             </div>
+
+            {/* Link Upload Modal */}
+            <LinkUploadModal
+                open={isLinkModalOpen}
+                onClose={() => setIsLinkModalOpen(false)}
+                onSubmit={handleLinkUpload}
+            />
         </aside>
     );
 }
