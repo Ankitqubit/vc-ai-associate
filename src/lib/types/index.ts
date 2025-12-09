@@ -261,3 +261,57 @@ export interface TeamMember {
   avatar?: string;
   role: 'partner' | 'principal' | 'analyst' | 'associate';
 }
+
+// ============================================
+// THESIS CONFIGURATION
+// ============================================
+
+export interface ThesisHardConstraints {
+  stages: DealStage[]; // Preferred stages
+  geographies: string[]; // e.g., ["United States", "Europe"]
+  checkSizeMin: string; // e.g., "$1M"
+  checkSizeMax: string; // e.g., "$10M"
+  excludedSectors: string[]; // e.g., ["Crypto", "Hardware"]
+}
+
+export interface ThesisSoftPreferences {
+  teamWeight: number; // 0-100
+  marketWeight: number; // 0-100
+  tractionWeight: number; // 0-100
+  productWeight: number; // 0-100
+  sectorAppetites: {
+    sector: string;
+    appetite: 'high' | 'medium' | 'low';
+  }[];
+  businessModels: string[]; // e.g., ["SaaS", "Marketplace", "Platform"]
+}
+
+export interface ThesisBlock {
+  id: string;
+  type: 'focus' | 'constraints' | 'preferences' | 'sectors' | 'anti_portfolio';
+  title: string;
+  content: string; // Prose or structured data serialized
+  order: number;
+  lastEditedBy?: {
+    name: string;
+    isAi: boolean;
+    timestamp: string;
+  };
+}
+
+export interface InvestmentThesis {
+  id: string;
+  fundId: string;
+  version: number;
+  focusStatement: string; // Main thesis in prose
+  hardConstraints: ThesisHardConstraints;
+  softPreferences: ThesisSoftPreferences;
+  antiPortfolio?: string; // Optional: patterns to avoid
+  blocks: ThesisBlock[]; // Document-style blocks for editing
+  createdAt: string;
+  updatedAt: string;
+  updatedBy: {
+    name: string;
+    isAi: boolean;
+  };
+}
